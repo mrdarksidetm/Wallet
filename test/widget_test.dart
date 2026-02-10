@@ -17,6 +17,6 @@ void main() {
     await tester.pumpWidget(const ProviderScope(child: WalletApp()));
 
     // Verify that our title is present.
-    expect(find.text('Theme Settings'), findsOneWidget);
+    expect(find.text('Settings'), findsOneWidget);
   });
 }

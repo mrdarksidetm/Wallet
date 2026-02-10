@@ -1,11 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/theme/app_theme.dart';
-import 'core/providers/theme_provider.dart';
-import 'features/settings/presentation/theme_settings_screen.dart';
+import 'core/design/app_design.dart';
+import 'core/design/design_controller.dart';
+import 'core/database/providers.dart';
+import 'features/transactions/presentation/transaction_list_screen.dart';
 
-void main() {
-  runApp(const ProviderScope(child: WalletApp()));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  final container = ProviderContainer();
+  // Wait for Isar to initialize
+  await container.read(isarProvider.future);
+  // Run seed defaults
+  await container.read(seedServiceProvider).seedDefaults();
+
+  runApp(
+    UncontrolledProviderScope(
+      container: container,
+      child: const WalletApp(),
+    ),
+  );
 }
 
 class WalletApp extends ConsumerWidget {
@@ -13,23 +27,21 @@ class WalletApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeState = ref.watch(themeProvider);
+    final designState = ref.watch(designControllerProvider);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Wallet',
-      theme: AppTheme.getTheme(
+      theme: AppDesign.getThemeData(
         brightness: Brightness.light,
-        fontFamily: themeState.fontFamily,
-        isLiquid: themeState.isLiquid,
+        fontFamily: designState.fontFamily,
       ),
-      darkTheme: AppTheme.getTheme(
+      darkTheme: AppDesign.getThemeData(
         brightness: Brightness.dark,
-        fontFamily: themeState.fontFamily,
-        isLiquid: themeState.isLiquid,
+        fontFamily: designState.fontFamily,
       ),
-      themeMode: themeState.themeMode,
-      home: const ThemeSettingsScreen(),
+      themeMode: designState.themeMode,
+      home: const TransactionListScreen(),
     );
   }
 }
