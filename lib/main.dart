@@ -13,6 +13,8 @@ void main() async {
   await container.read(isarProvider.future);
   // Run seed defaults
   await container.read(seedServiceProvider).seedDefaults();
+  // Check recurring transactions
+  await container.read(recurringServiceProvider).checkRecurringTransactions();
 
   runApp(
     UncontrolledProviderScope(
@@ -41,7 +43,7 @@ class WalletApp extends ConsumerWidget {
         fontFamily: designState.fontFamily,
       ),
       themeMode: designState.themeMode,
-      home: const TransactionListScreen(),
+      home: const HomeScreen(),
     );
   }
 }
