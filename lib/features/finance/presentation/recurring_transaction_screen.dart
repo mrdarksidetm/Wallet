@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
-import '../../transactions/presentation/add_edit_transaction_screen.dart';
 
 class RecurringTransactionScreen extends ConsumerWidget {
   const RecurringTransactionScreen({super.key});

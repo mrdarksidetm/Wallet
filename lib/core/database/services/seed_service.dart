@@ -8,14 +8,14 @@ class SeedService {
   SeedService(this.isar);
 
   Future<void> seedDefaults() async {
-    final categoryCount = await isar.categories.count();
+    final categoryCount = await isar.categorys.count();
     final accountCount = await isar.accounts.count();
 
     if (categoryCount > 0 && accountCount > 0) return;
 
     await isar.writeTxn(() async {
       if (categoryCount == 0) {
-        final categories = [
+        final defaults = [
           // Income
           Category()
             ..name = 'Salary'
@@ -68,19 +68,21 @@ class SeedService {
             ..createdAt = DateTime.now()
             ..updatedAt = DateTime.now(),
         ];
-        await isar.categories.putAll(categories);
+        await isar.categorys.putAll(defaults);
       }
 
-      if (accountCount == 0) {
-        final cashAccount = Account()
+      // 3. Add default Cash account if none
+      final accCount = await isar.accounts.count();
+      if (accCount == 0) {
+        final cash = Account()
           ..name = 'Cash'
           ..type = AccountType.cash
           ..balance = 0.0
-          ..color = '0xFF607D8B'
-          ..icon = 'account_balance_wallet'
+          ..color = '4CAF50'
+          ..icon = 'EF4C'
           ..createdAt = DateTime.now()
           ..updatedAt = DateTime.now();
-        await isar.accounts.put(cashAccount);
+        await isar.accounts.put(cash);
       }
     });
   }

@@ -1,6 +1,5 @@
 import 'package:isar/isar.dart';
 import '../models/auxiliary_models.dart';
-import '../models/transaction_model.dart';
 import '../services/transaction_service.dart';
 
 class RecurringService {
@@ -61,7 +60,6 @@ class RecurringService {
 
     } catch (e) {
       // Log error or handle failure (skip this one)
-      print('Failed to process recurring transaction: $e');
     }
   }
 

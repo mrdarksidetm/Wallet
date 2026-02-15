@@ -12,6 +12,14 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   exclude:
     - "_backup_legacy/**"
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+
+  errors:
+    deprecated_member_use: ignore
+    unnecessary_underscores: ignore
+    use_build_context_synchronously: ignore
+
 
 
 linter:

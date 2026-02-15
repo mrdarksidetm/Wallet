@@ -45,7 +45,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final accountsAsync = ref.watch(accountsStreamProvider);
-    final categoriesAsync = ref.watch(categoriesStreamProvider);
+
 
     return Scaffold(
       appBar: AppBar(title: const Text('Search Transactions')),
@@ -82,7 +82,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           if (range != null) {
                             setState(() {
                               _startDate = range.start;
-                              _endDate = range.end.add(const Duration(days: 1).subtract(const Duration(seconds: 1)));
+                              _endDate = range.end.add(const Duration(days: 1) - const Duration(seconds: 1));
                             });
                             _performSearch();
                           }

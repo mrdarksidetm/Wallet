@@ -17,21 +17,23 @@ class TransactionRepository extends BaseRepository<TransactionModel> {
     List<int>? accountIds,
     List<int>? categoryIds,
   }) async {
-    var q = isar.transactionModels.where().sortByDateDesc();
+    // Start with a base filter that includes all (id > -1) to ensure we have QAfterFilterCondition
+    // This allows us to chain .and() logic and end up with a state that supports .sortBy...()
+    QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition> q = 
+        isar.transactionModels.filter().idGreaterThan(-1);
 
     if (startDate != null && endDate != null) {
-      q = q.filter().dateBetween(startDate, endDate).sortByDateDesc();
+      q = q.and().dateBetween(startDate, endDate);
     }
 
     if (type != null) {
-      q = q.filter().typeEqualTo(type).sortByDateDesc();
+      q = q.and().typeEqualTo(type);
     }
     
     // Note: Isar filters on links (account/category) are tricky in simple queries without links logic
     // For now, we fetch and filter in memory if IDs provided, valid for local DB size.
-    // Or we use deeper link queries if needed. simpler => memory filter for MVP.
     
-    var results = await q.findAll();
+    var results = await q.sortByDateDesc().findAll();
     
     if (query != null && query.isNotEmpty) {
       final lower = query.toLowerCase();

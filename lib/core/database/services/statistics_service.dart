@@ -17,12 +17,12 @@ class StatisticsService {
 
   Future<double> getTotalBalance() async {
     final accounts = await isar.accounts.where().findAll();
-    return accounts.fold(0.0, (sum, account) => sum + account.balance);
+    return accounts.fold<double>(0.0, (double sum, Account account) => sum + account.balance);
   }
 
   Stream<double> watchTotalBalance() {
     return isar.accounts.where().watch(fireImmediately: true).map((accounts) {
-      return accounts.fold(0.0, (sum, account) => sum + account.balance);
+      return accounts.fold<double>(0.0, (double sum, Account account) => sum + account.balance);
     });
   }
 

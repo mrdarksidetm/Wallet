@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/design/design_controller.dart';
 import 'dashboard_screen.dart';
 import '../../transactions/presentation/transaction_list_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
@@ -28,8 +27,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final dashboard = DashboardScreen(
       onNavigateToTransactions: () => setState(() => _currentIndex = 1),
     );
-
-    final isLiquid = ref.watch(designControllerProvider).isLiquid;
     
     return Scaffold(
       body: _currentIndex == 0 ? dashboard : _pages[_currentIndex],
