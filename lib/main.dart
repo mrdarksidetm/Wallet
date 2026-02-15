@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/design/app_design.dart';
 import 'core/design/design_controller.dart';
 import 'core/database/providers.dart';
-import 'features/transactions/presentation/transaction_list_screen.dart';
+import 'features/dashboard/presentation/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -8,7 +8,7 @@ class LoanScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final loansStream = ref.watch(loanRepositoryProvider).watchAll();
+    final loansAsync = ref.watch(loansStreamProvider);
 
     return DefaultTabController(
       length: 2,
@@ -19,19 +19,15 @@ class LoanScreen extends ConsumerWidget {
             tabs: [Tab(text: 'Lent'), Tab(text: 'Borrowed')],
           ),
         ),
-        body: StreamBuilder<List<Loan>>(
-          stream: loansStream,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-            final loans = snapshot.data!;
-            
-            return TabBarView(
-              children: [
-                _LoanList(loans: loans.where((l) => l.type == LoanType.lent).toList(), ref: ref),
-                _LoanList(loans: loans.where((l) => l.type == LoanType.borrowed).toList(), ref: ref),
-              ],
-            );
-          },
+        body: loansAsync.when(
+          data: (loans) => TabBarView(
+            children: [
+              _LoanList(loans: loans.where((l) => l.type == LoanType.lent).toList(), ref: ref),
+              _LoanList(loans: loans.where((l) => l.type == LoanType.borrowed).toList(), ref: ref),
+            ],
+          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Center(child: Text('Error: $err')),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () => _showAddLoanDialog(context, ref),

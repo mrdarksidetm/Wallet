@@ -60,7 +60,7 @@ class BalanceCard extends ConsumerWidget {
   Widget _buildContainer({required bool isLiquid, required Widget child}) {
     if (isLiquid) {
       return GlassSurface(
-        radius: const BorderRadius.all(Radius.circular(28)),
+        borderRadius: const BorderRadius.all(Radius.circular(28)),
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(

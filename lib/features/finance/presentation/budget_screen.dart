@@ -9,26 +9,15 @@ class BudgetScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final budgetsAsync = ref.watch(budgetRepositoryProvider).select((repo) => repo.watchAll());
-    // Using StreamBuilder directly or convert to StreamProvider in providers.dart
-    // For simplicity, let's use StreamBuilder here or defined stream provider
-    // We didn't define stream provider for budgets yet, let's do ad-hoc stream here for now
-    // or better, define it in the build method.
-    final budgetsStream = ref.watch(budgetRepositoryProvider).watchAll();
+    final budgetsAsync = ref.watch(budgetsStreamProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Budgets')),
-      body: StreamBuilder<List<Budget>>(
-        stream: budgetsStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+      body: budgetsAsync.when(
+        data: (budgets) {
+          if (budgets.isEmpty) {
             return const Center(child: Text('No budgets set.'));
           }
-          
-          final budgets = snapshot.data!;
           return ListView.builder(
             itemCount: budgets.length,
             itemBuilder: (context, index) {
@@ -46,6 +35,8 @@ class BudgetScreen extends ConsumerWidget {
             },
           );
         },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddBudgetDialog(context, ref),

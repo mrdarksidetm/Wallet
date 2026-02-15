@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/design/design_controller.dart';
+import '../../../../core/design/design_controller.dart';
 import 'dashboard_screen.dart';
 import '../../transactions/presentation/transaction_list_screen.dart';
 import '../../settings/presentation/settings_screen.dart';

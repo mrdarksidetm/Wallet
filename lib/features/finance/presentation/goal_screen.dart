@@ -8,37 +8,33 @@ class GoalScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final goalsStream = ref.watch(goalRepositoryProvider).watchAll();
+    final goalsAsync = ref.watch(goalsStreamProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Goals')),
-      body: StreamBuilder<List<Goal>>(
-        stream: goalsStream,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-          final goals = snapshot.data!;
-          
-          return ListView.builder(
-            itemCount: goals.length,
-            itemBuilder: (context, index) {
-              final goal = goals[index];
-              return ListTile(
-                title: Text(goal.name),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('\$${goal.currentAmount} / \$${goal.targetAmount}'),
-                    LinearProgressIndicator(value: goal.currentAmount / goal.targetAmount),
-                  ],
-                ),
-                onTap: () {
-                  // Simple dialog to update amount
-                  _showUpdateDialog(context, ref, goal);
-                },
-              );
-            },
-          );
-        },
+      body: goalsAsync.when(
+        data: (goals) => ListView.builder(
+          itemCount: goals.length,
+          itemBuilder: (context, index) {
+            final goal = goals[index];
+            return ListTile(
+              title: Text(goal.name),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('\$${goal.currentAmount} / \$${goal.targetAmount}'),
+                  LinearProgressIndicator(value: goal.currentAmount / goal.targetAmount),
+                ],
+              ),
+              onTap: () {
+                // Simple dialog to update amount
+                _showUpdateDialog(context, ref, goal);
+              },
+            );
+          },
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddGoalDialog(context, ref),

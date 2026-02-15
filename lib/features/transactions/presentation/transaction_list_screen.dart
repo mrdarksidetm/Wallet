@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../search/presentation/search_screen.dart';
+import 'add_edit_transaction_screen.dart';
 
 class TransactionListScreen extends ConsumerWidget {
   const TransactionListScreen({super.key});
