@@ -1,47 +1,40 @@
 name: wallet
-description: A modern Flutter Wallet App
+description: A personal finance wallet app
 publish_to: 'none'
-
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.4.0 <4.0.0"
+  sdk: ">=3.3.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
 
-  # ----------------------------
-  # STATE MANAGEMENT
-  # ----------------------------
-  flutter_riverpod: ^3.2.1
-  riverpod_annotation: ^4.0.2
+  # State Management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.3.5
 
-  # ----------------------------
-  # LOCAL STORAGE
-  # ----------------------------
-  isar: ^3.1.0+1
-  isar_flutter_libs: ^3.1.0+1
-  path_provider: ^2.1.3
-  shared_preferences: ^2.3.2
+  # Storage
+  shared_preferences: ^2.2.2
   flutter_secure_storage: ^10.0.0
 
-  # ----------------------------
-  # UI / ANIMATION
-  # ----------------------------
+  # Database
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
+  path_provider: ^2.1.2
+
+  # UI
   flutter_animate: ^4.5.0
   fl_chart: ^1.1.1
+  google_fonts: ^8.0.1
   flutter_svg: ^2.0.10+1
-  google_fonts: ^8.0.2
   intl: ^0.20.2
   cupertino_icons: ^1.0.8
 
-  # ----------------------------
-  # FILES / PERMISSIONS
-  # ----------------------------
+  # File / Permissions
+  csv: ^6.0.0
   permission_handler: ^12.0.1
   open_file: ^3.3.2
-  csv: ^7.1.0
 
 dev_dependencies:
   flutter_test:
@@ -49,11 +42,11 @@ dev_dependencies:
 
   flutter_lints: ^6.0.0
 
-  # Code generation
-  build_runner: ^2.11.1
+  # Code Generation
+  build_runner: ^2.4.8
   isar_generator: ^3.1.0+1
-  riverpod_generator: ^4.0.3
-
+  riverpod_generator: ^2.4.0
+ 
 flutter:
   uses-material-design: true
 

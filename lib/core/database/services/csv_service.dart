@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:csv/csv.dart';
+import 'package:csv/csv.dart' as csv;
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -49,13 +49,13 @@ class CsvService {
     }
 
     // 4. Generate CSV String
-    String csv = const ListToCsvConverter().convert(rows);
+    String csvData = const csv.ListToCsvConverter().convert(rows);
 
     // 5. Save to File
     final directory = await _getDownloadDirectory();
     final path = '${directory.path}/wallet_export_${DateTime.now().millisecondsSinceEpoch}.csv';
     final file = File(path);
-    await file.writeAsString(csv);
+    await file.writeAsString(csvData);
     
     // 6. Open File
     await OpenFile.open(path);
