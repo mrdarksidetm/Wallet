@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.mrdarksidetm.wallet"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 34
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -25,7 +25,7 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 26
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 34
         ndk {
            abiFilters.add("armeabi-v7a")
            abiFilters.add("arm64-v8a")
