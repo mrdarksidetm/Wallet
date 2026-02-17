@@ -3,25 +3,20 @@ workflows:
     name: Android Release
     max_build_duration: 60
     instance_type: mac_mini_m2
+
     environment:
-      # Use latest stable Flutter by default or pin if needed
       flutter: 3.19.6
-      groups:
-        # Add your keystore groups here if you have them, e.g.
-        # - android_credentials
+      java: 17
       vars:
         PACKAGE_NAME: "com.mrdarksidetm.wallet"
-      java: 17
+
     scripts:
       - name: Get Dependencies
         script: |
-          flutter packages pub get
-      
+          flutter pub get
+
       - name: Patch Isar for AGP 8 Compatibility
         script: |
-          # AGP 8+ does not support 'package' attribute in library manifests.
-          # Isar v3 includes it, causing build failures.
-          # This script removes the attribute from the cached package.
           echo "Patching Isar Manifest..."
           find $HOME/.pub-cache/hosted/pub.dev/isar_flutter_libs-* -name "AndroidManifest.xml" -exec sed -i '' 's/package="dev.isar.isar_flutter_libs"//g' {} + || true
           echo "Patch complete."
@@ -33,11 +28,14 @@ workflows:
       - name: Build Android Release
         script: |
           flutter build apk --release
+
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
-      - flutter_drive.log
+
     publishing:
       email:
         recipients:
           - ajukr99901@gmail.com
-        notify: success
+        notify:
+          success: true
+          failure: true
