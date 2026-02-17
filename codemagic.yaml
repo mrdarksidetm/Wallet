@@ -5,12 +5,26 @@ workflows:
     instance_type: mac_mini_m2
 
     environment:
-      flutter: stable
+      flutter: 3.19.6
       java: 17
       vars:
         PACKAGE_NAME: "com.mrdarksidetm.wallet"
 
+    cache:
+      cache_paths:
+        - ~/.pub-cache
+        - ~/.gradle
+
     scripts:
+
+      - name: Initialize Flutter
+        script: |
+          flutter doctor -v
+
+      - name: Clean Project
+        script: |
+          flutter clean
+
       - name: Get Dependencies
         script: |
           flutter pub get
@@ -18,16 +32,22 @@ workflows:
       - name: Patch Isar for AGP 8 Compatibility
         script: |
           echo "Patching Isar Manifest..."
-          find $HOME/.pub-cache/hosted/pub.dev/isar_flutter_libs-* -name "AndroidManifest.xml" -exec sed -i '' 's/package="dev.isar.isar_flutter_libs"//g' {} + || true
+          find $HOME/.pub-cache/hosted/pub.dev/isar_flutter_libs-* \
+          -name "AndroidManifest.xml" \
+          -exec sed -i '' 's/package="dev.isar.isar_flutter_libs"//g' {} + || true
           echo "Patch complete."
 
       - name: Run Code Generation
         script: |
-          dart run build_runner build --delete-conflicting-outputs
+          flutter pub run build_runner build --delete-conflicting-outputs
 
-      - name: Build Android Release
+      - name: Static Analysis
         script: |
-          flutter build apk --release
+          flutter analyze
+
+      - name: Build Android Release APK
+        script: |
+          flutter build apk --release --no-tree-shake-icons
 
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
@@ -36,6 +56,5 @@ workflows:
       email:
         recipients:
           - ajukr99901@gmail.com
-        notify:
-          success: true
-          failure: true
+        notify_on_success: true
+        notify_on_failure: true
