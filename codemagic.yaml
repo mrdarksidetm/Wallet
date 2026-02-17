@@ -34,7 +34,7 @@ workflows:
           echo "Patch complete."
 
       - name: Run Code Generation
-        script: flutter pub run build_runner build --delete-conflicting-outputs
+        script: dart run build_runner build --delete-conflicting-outputs
 
       - name: Static Analysis
         script: flutter analyze

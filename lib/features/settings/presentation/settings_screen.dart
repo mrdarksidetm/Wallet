@@ -19,7 +19,7 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
-          _SectionHeader(title: 'Appearance'),
+          const _SectionHeader(title: 'Appearance'),
           SwitchListTile(
             title: const Text('Liquid Glass Effect'),
             value: designState.isLiquid,
@@ -53,7 +53,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           
-          _SectionHeader(title: 'Finance'),
+          const _SectionHeader(title: 'Finance'),
           ListTile(
             leading: const Icon(Icons.pie_chart),
             title: const Text('Budgets'),
@@ -75,7 +75,7 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecurringTransactionScreen())),
           ),
 
-          _SectionHeader(title: 'Data'),
+          const _SectionHeader(title: 'Data'),
           ListTile(
             leading: const Icon(Icons.download),
             title: const Text('Export CSV'),

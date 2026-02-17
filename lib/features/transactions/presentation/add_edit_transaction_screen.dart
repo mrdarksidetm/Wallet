@@ -155,7 +155,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
                 decoration: const InputDecoration(labelText: 'Account'),
               ),
               loading: () => const LinearProgressIndicator(),
-              error: (err, stack) => Text('Error loading accounts'),
+              error: (err, stack) => const Text('Error loading accounts'),
             ),
             if (_type == TransactionType.transfer) ...[
               const SizedBox(height: 16),
@@ -169,7 +169,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
                   decoration: const InputDecoration(labelText: 'To Account'),
                 ),
                 loading: () => const LinearProgressIndicator(),
-                error: (err, stack) => Text('Error loading accounts'),
+                error: (err, stack) => const Text('Error loading accounts'),
               ),
             ],
             const SizedBox(height: 16),
@@ -187,7 +187,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
                 );
               },
               loading: () => const LinearProgressIndicator(),
-              error: (err, stack) => Text('Error loading categories'),
+              error: (err, stack) => const Text('Error loading categories'),
             ),
             const SizedBox(height: 16),
             // Date

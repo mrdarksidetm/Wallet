@@ -53,9 +53,9 @@ class AppDesign {
       // ),
 
       // List Tile
-      listTileTheme: ListTileThemeData(
+      listTileTheme: const ListTileThemeData(
         shape: shapeMedium,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
     );
   }

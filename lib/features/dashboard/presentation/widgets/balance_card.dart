@@ -48,7 +48,7 @@ class BalanceCard extends ConsumerWidget {
                   width: 100,
                   child: LinearProgressIndicator(),
                 ),
-                error: (_, __) => Text('\$0.00'),
+                error: (_, __) => const Text('\$0.00'),
               ),
             ],
           ),

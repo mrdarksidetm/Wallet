@@ -13,7 +13,7 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [
-        SliverAppBar(
+        const SliverAppBar(
           expandedHeight: 60,
           floating: true,
           backgroundColor: Colors.transparent,
@@ -25,8 +25,8 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
         ),
-        SliverToBoxAdapter(child: BalanceCard()),
-        SliverPadding(
+        const SliverToBoxAdapter(child: BalanceCard()),
+        const SliverPadding(
           padding: EdgeInsets.symmetric(vertical: 16),
           sliver: SliverToBoxAdapter(child: OverviewCards()),
         ),

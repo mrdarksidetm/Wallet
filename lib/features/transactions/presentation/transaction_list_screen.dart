@@ -39,7 +39,7 @@ class TransactionListScreen extends ConsumerWidget {
               return ListTile(
                 leading: CircleAvatar(
                   backgroundColor: Color(int.parse(category?.color ?? '0xFF9E9E9E')),
-                  child: Icon(Icons.category, color: Colors.white, size: 20),
+                  child: const Icon(Icons.category, color: Colors.white, size: 20),
                 ),
                 title: Text(category?.name ?? 'Unknown'),
                 subtitle: Text('${account?.name ?? 'Unknown'} • ${DateFormat.yMMMd().format(tx.date)}'),
