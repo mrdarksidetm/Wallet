@@ -64,11 +64,9 @@ class TransactionService {
       // 3. Save
       await isar.accounts.put(account);
       await isar.transactionModels.put(transaction);
-      await transaction.account.save();
-      await transaction.category.save();
-      if (transaction.transferAccount.value != null) {
-        await transaction.transferAccount.save();
-      }
+      // Links are saved automatically when the object is put (if they are IsarLinks)
+      // or we just need to ensure the IDs are set, which .value = ... does.
+      // Explicit .save() starts a new transaction, causing a crash.
     });
   }
 
@@ -116,11 +114,6 @@ class TransactionService {
       
       newTransaction.updatedAt = DateTime.now();
       await isar.transactionModels.put(newTransaction);
-      await newTransaction.account.save();
-      await newTransaction.category.save();
-      if (newTransaction.transferAccount.value != null) {
-        await newTransaction.transferAccount.save();
-      }
     });
   }
 
