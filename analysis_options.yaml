@@ -14,6 +14,7 @@ analyzer:
     - "_backup_legacy/**"
     - "**/*.g.dart"
     - "**/*.freezed.dart"
+    - "isar_community/**"
 
   errors:
     deprecated_member_use: ignore
