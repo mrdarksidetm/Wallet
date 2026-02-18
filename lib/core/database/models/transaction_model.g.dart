@@ -113,7 +113,7 @@ const TransactionModelSchema = CollectionSchema(
   getId: _transactionModelGetId,
   getLinks: _transactionModelGetLinks,
   attach: _transactionModelAttach,
-  version: '3.1.8',
+  version: '3.1.0+1',
 );
 
 int _transactionModelEstimateSize(
