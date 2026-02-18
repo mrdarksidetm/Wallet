@@ -1,0 +1,165 @@
+name: Isar release
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  verify_version:
+    name: Verify version matches release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        sdk: [3.0.0]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ vars.FLUTTER_VERSION }}
+      - name: Verify release version
+        run: |
+          flutter pub get
+          dart tool/verify_release_version.dart ${{ github.ref_name }}
+        working-directory: packages/isar
+
+  build_binaries:
+    name: Build Binaries
+    needs: verify_version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: libisar_android_arm64.so
+            script: build_android.sh
+          - os: ubuntu-latest
+            artifact_name: libisar_android_armv7.so
+            script: build_android.sh armv7
+          - os: ubuntu-latest
+            artifact_name: libisar_android_x64.so
+            script: build_android.sh x64
+          - os: ubuntu-latest
+            artifact_name: libisar_android_x86.so
+            script: build_android.sh x86
+          - os: macos-latest
+            artifact_name: isar_ios.xcframework.zip
+            script: build_ios.sh
+          - os: ubuntu-20.04
+            artifact_name: libisar_linux_x64.so
+            script: build_linux.sh x64
+          - os: macos-latest
+            artifact_name: libisar_macos.dylib
+            script: build_macos.sh
+          - os: windows-latest
+            artifact_name: isar_windows_arm64.dll
+            script: build_windows.sh
+          - os: windows-latest
+            artifact_name: isar_windows_x64.dll
+            script: build_windows.sh x64
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare Build
+        uses: ./.github/actions/prepare-build
+      - name: Set env
+        run: echo "ISAR_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+      - name: Build binary
+        run: bash tool/${{ matrix.script }}
+      - name: Upload binary
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ matrix.artifact_name }}
+          asset_name: ${{ matrix.artifact_name }}
+          tag: ${{ github.ref }}
+
+  testlab:
+    needs: build_binaries
+    uses: ./.github/workflows/testlab.yaml
+    secrets: inherit
+
+  build_inspector:
+    name: Build Inspector
+    needs: build_binaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ vars.FLUTTER_VERSION }}
+      - name: Build
+        run: flutter build web --base-href /${{ github.ref_name }}/
+        working-directory: packages/isar_inspector
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: packages/isar_inspector/build/web
+          repository-name: isar-community/inspector
+          token: ${{ secrets.TOKEN }}
+          target-folder: ${{ github.ref_name }}
+          clean: false
+
+  upload_to_repo:
+    needs: build_binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: binaries/
+      - name: List contents of downloaded artifacts
+        run: |
+          echo "Listing contents of all downloaded artifacts..."
+          ls -Rlh binaries/
+          echo "Listing complete."
+      - name: Setup Git and clone target repository
+        run: |
+          git config --global user.email "vicente.russo@gmail.com"
+          git config --global user.name "GitHub Actions"
+          git clone https://github.com/isar-community/binaries repo
+          cd repo
+          git checkout main || git checkout -b main
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+      - name: Copy binaries to repository and push
+        run: |
+          cd repo
+          ISAR_VERSION=$(echo "${{ github.ref_name }}" | sed 's/refs\/tags\///')
+          echo "Deploying binaries to version: $ISAR_VERSION"
+          mkdir -p "$ISAR_VERSION"
+          cp ../binaries/**/* "$ISAR_VERSION"
+          git add .
+          git commit -m "Deploy binaries for version $ISAR_VERSION" || echo "No changes to commit"
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/isar-community/binaries.git main
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+
+  # publish:
+  #   name: Publish
+  #   needs: build_inspector
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: subosito/flutter-action@v2
+  #     - name: pub get
+  #       run: dart pub get
+  #       working-directory: packages/isar
+  #     - name: Download Binaries
+  #       run: sh tool/download_binaries.sh
+  #     - name: pub.dev credentials
+  #       run: |
+  #         mkdir -p $HOME/.config/dart
+  #         echo '${{ secrets.PUB_JSON }}' >> $HOME/.config/dart/pub-credentials.json
+  #     - name: Publish isar
+  #       run: dart pub publish --force
+  #       working-directory: packages/isar
+  #     - name: Publish isar_generator
+  #       run: dart pub publish --force
+  #       working-directory: packages/isar_generator
+  #     - name: Publish isar_flutter_libs
+  #       run: dart pub publish --force
+  #       working-directory: packages/isar_flutter_libs
