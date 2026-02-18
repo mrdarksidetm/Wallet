@@ -3,7 +3,7 @@ import 'package:csv/csv.dart' as csv;
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:open_file/open_file.dart';
+import 'package:open_filex/open_filex.dart';
 import '../models/transaction_model.dart';
 
 class CsvService {
@@ -58,7 +58,7 @@ class CsvService {
     await file.writeAsString(csvData);
     
     // 6. Open File
-    await OpenFile.open(path);
+    await OpenFilex.open(path);
   }
 
   Future<bool> _requestPermission() async {
