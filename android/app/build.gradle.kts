@@ -24,7 +24,7 @@ android {
         applicationId = "com.mrdarksidetm.wallet"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 26
+        minSdk = 33
         targetSdk = 34
         ndk {
            abiFilters.add("armeabi-v7a")
