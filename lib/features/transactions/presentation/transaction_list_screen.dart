@@ -37,9 +37,12 @@ class TransactionListScreen extends ConsumerWidget {
               final category = tx.category.value;
 
               return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Color(int.parse(category?.color ?? '0xFF9E9E9E')),
-                  child: const Icon(Icons.category, color: Colors.white, size: 20),
+                leading: Hero(
+                  tag: 'cat_icon_${tx.id}',
+                  child: CircleAvatar(
+                    backgroundColor: Color(int.parse(category?.color ?? '0xFF9E9E9E')),
+                    child: const Icon(Icons.category, color: Colors.white, size: 20),
+                  ),
                 ),
                 title: Text(category?.name ?? 'Unknown'),
                 subtitle: Text('${account?.name ?? 'Unknown'} • ${DateFormat.yMMMd().format(tx.date)}'),
@@ -65,7 +68,9 @@ class TransactionListScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: Hero(
+        tag: 'fab_add',
+        child: FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
@@ -75,6 +80,7 @@ class TransactionListScreen extends ConsumerWidget {
           );
         },
         child: const Icon(Icons.add),
+        ),
       ),
     );
   }

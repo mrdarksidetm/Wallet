@@ -11,26 +11,28 @@ class OverviewCards extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: _StatCard(
-              title: 'Income',
-              value: statsAsync.value?['income'] ?? 0.0,
-              color: Colors.green,
-              icon: Icons.arrow_downward,
+      child: RepaintBoundary(
+        child: Row(
+          children: [
+            Expanded(
+              child: _StatCard(
+                title: 'Income',
+                value: statsAsync.value?['income'] ?? 0.0,
+                color: Colors.green,
+                icon: Icons.arrow_downward,
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _StatCard(
-              title: 'Expense',
-              value: statsAsync.value?['expense'] ?? 0.0,
-              color: Colors.red,
-              icon: Icons.arrow_upward,
+            const SizedBox(width: 16),
+            Expanded(
+              child: _StatCard(
+                title: 'Expense',
+                value: statsAsync.value?['expense'] ?? 0.0,
+                color: Colors.red,
+                icon: Icons.arrow_upward,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

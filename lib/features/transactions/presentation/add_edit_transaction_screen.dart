@@ -116,9 +116,13 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
             ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
+      body: Hero(
+        tag: 'fab_add',
+        child: Material(
+          type: MaterialType.transparency,
+          child: Form(
+            key: _formKey,
+            child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             // Type Selector
@@ -216,7 +220,9 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
               onPressed: _save,
               child: const Text('Save Transaction'),
             ),
-          ],
+            ],
+            ),
+          ),
         ),
       ),
     );

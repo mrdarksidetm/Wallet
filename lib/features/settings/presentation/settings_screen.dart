@@ -6,7 +6,8 @@ import '../../finance/presentation/budget_screen.dart';
 import '../../finance/presentation/loan_screen.dart';
 import '../../finance/presentation/goal_screen.dart';
 import '../../finance/presentation/recurring_transaction_screen.dart';
-import '../../ai/presentation/insights_screen.dart';
+
+import 'package:wallet/features/ai/presentation/insights_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -76,13 +77,15 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecurringTransactionScreen())),
           ),
 
-          const _SectionHeader(title: 'AI Intelligence'),
+          const _SectionHeader(title: 'Intelligence'),
           ListTile(
-            leading: const Icon(Icons.psychology, color: Colors.purple),
-            title: const Text('AI Configuration'),
-            subtitle: const Text('Financial Insights via Gemini'),
+            leading: const Icon(Icons.lightbulb_outline, color: Colors.amber),
+            title: const Text('Financial Insights'),
+            subtitle: const Text('Smart offline analysis'),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InsightsScreen())),
           ),
+
+
 
           const _SectionHeader(title: 'Data'),
           ListTile(
