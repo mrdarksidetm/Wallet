@@ -20,8 +20,10 @@ dependencies:
   flutter_secure_storage: 10.0.0
 
   # Database
-  isar: 3.1.0+1
-  isar_flutter_libs: 3.1.0+1
+  isar:
+    path: isar_community/packages/isar
+  isar_flutter_libs:
+    path: isar_community/packages/isar_flutter_libs
   path_provider: 2.1.2
 
   # UI
@@ -45,11 +47,11 @@ dev_dependencies:
 
   # Code Generation
   build_runner: 2.4.13
-  isar_generator: 3.1.0+1
+  isar_generator:
+    path: isar_community/packages/isar_generator
   riverpod_generator: 2.4.0
 
-dependency_overrides:
-  analyzer: ^5.13.0
+# dependency_overrides:
  
 flutter:
   uses-material-design: true
