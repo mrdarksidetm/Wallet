@@ -27,8 +27,6 @@ android {
 
     defaultConfig {
         applicationId = "com.mrdarksidetm.wallet"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 33
         targetSdk = 36
         ndk {
@@ -52,9 +50,18 @@ android {
         create("release") {
             keyAlias = keystoreProperties.getProperty("keyAlias") ?: System.getenv("CM_KEY_ALIAS")
             keyPassword = keystoreProperties.getProperty("keyPassword") ?: System.getenv("CM_KEY_PASSWORD")
-            val storeFileStr = keystoreProperties.getProperty("storeFile") ?: System.getenv("CM_KEYSTORE_PATH")
-            storeFile = storeFileStr?.let { file(it) }
             storePassword = keystoreProperties.getProperty("storePassword") ?: System.getenv("CM_KEYSTORE_PASSWORD")
+
+            val base64Key = System.getenv("CM_KEYSTORE_BASE64")
+            if (base64Key != null && base64Key.isNotEmpty()) {
+                val decodedBytes = java.util.Base64.getDecoder().decode(base64Key)
+                val tempKeyFile = file("upload-keystore.jks")
+                tempKeyFile.writeBytes(decodedBytes)
+                storeFile = tempKeyFile
+            } else {
+                val storeFileStr = keystoreProperties.getProperty("storeFile") ?: System.getenv("CM_KEYSTORE_PATH")
+                storeFile = storeFileStr?.let { file(it) }
+            }
         }
     }
 
