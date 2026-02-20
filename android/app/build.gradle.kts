@@ -52,9 +52,9 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties.getProperty("keyAlias") ?: System.getenv("CM_KEY_ALIAS")
-            keyPassword = keystoreProperties.getProperty("keyPassword") ?: System.getenv("CM_KEY_PASSWORD")
-            storePassword = keystoreProperties.getProperty("storePassword") ?: System.getenv("CM_KEYSTORE_PASSWORD")
+            keyAlias = keystoreProperties.getProperty("keyAlias") ?: System.getenv("CM_KEY_ALIAS")?.trim()
+            keyPassword = keystoreProperties.getProperty("keyPassword") ?: System.getenv("CM_KEY_PASSWORD")?.trim()
+            storePassword = keystoreProperties.getProperty("storePassword") ?: System.getenv("CM_KEYSTORE_PASSWORD")?.trim()
 
             val base64Key = System.getenv("CM_KEYSTORE_BASE64")
             if (base64Key != null && base64Key.isNotEmpty()) {
