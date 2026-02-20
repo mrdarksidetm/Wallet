@@ -1,14 +1,61 @@
 import 'dart:async';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/design/app_design.dart';
-import 'core/design/design_controller.dart';
-import 'core/database/providers.dart';
-import 'features/dashboard/presentation/home_screen.dart';
+import 'package:wallet/core/database/providers.dart';
+import 'package:wallet/core/theme/theme.dart';
+import 'package:wallet/core/theme/theme_provider.dart';
+import 'package:wallet/features/dashboard/presentation/home_screen.dart';
 
 void main() {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+    
+    // Set custom white screen of death for Flutter runtime errors
+    ErrorWidget.builder = (FlutterErrorDetails details) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'An Error Occurred',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      details.exceptionAsString(),
+                      style: const TextStyle(color: Colors.black87, fontSize: 16),
+                    ),
+                    const SizedBox(height: 16),
+                    if (details.stack != null)
+                      Text(
+                        details.stack.toString(),
+                        style: const TextStyle(
+                          color: Colors.black54,
+                          fontSize: 12,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    };
+
     // Initialize error UI early
     runApp(const InitializationApp());
     
@@ -104,21 +151,32 @@ class WalletApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final designState = ref.watch(designControllerProvider);
+    final themeState = ref.watch(themeControllerProvider);
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Wallet',
-      theme: AppDesign.getThemeData(
-        brightness: Brightness.light,
-        fontFamily: designState.fontFamily,
-      ),
-      darkTheme: AppDesign.getThemeData(
-        brightness: Brightness.dark,
-        fontFamily: designState.fontFamily,
-      ),
-      themeMode: designState.themeMode,
-      home: const HomeScreen(),
+    return DynamicColorBuilder(
+      builder: (lightDynamic, darkDynamic) {
+        // Use dynamic color if enabled and available, otherwise fall back to seeds/custom
+        final ColorScheme? lightScheme = (themeState.useMaterialYou && lightDynamic != null)
+            ? lightDynamic
+            : (themeState.customColor != null 
+                ? ColorScheme.fromSeed(seedColor: themeState.customColor!) 
+                : null);
+                
+        final ColorScheme? darkScheme = (themeState.useMaterialYou && darkDynamic != null)
+            ? darkDynamic
+            : (themeState.customColor != null 
+                ? ColorScheme.fromSeed(seedColor: themeState.customColor!, brightness: Brightness.dark) 
+                : null);
+
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Wallet',
+          theme: AppTheme.lightTheme(lightScheme),
+          darkTheme: AppTheme.darkTheme(darkScheme),
+          themeMode: themeState.themeMode,
+          home: const HomeScreen(),
+        );
+      },
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/design/design_controller.dart';
+import '../../core/theme/theme_provider.dart';
 
 class AppIcon extends ConsumerWidget {
   final IconData materialIcon;
@@ -18,7 +18,7 @@ class AppIcon extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isLiquid = ref.watch(designControllerProvider).isLiquid;
+    final isLiquid = ref.watch(themeControllerProvider).isLiquid;
     
     // Animate the switch? For now simple switch.
     return Icon(

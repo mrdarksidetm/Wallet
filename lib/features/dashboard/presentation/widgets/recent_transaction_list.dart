@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/database/providers.dart';
 import '../../../../core/database/models/transaction_model.dart';
-import '../../../../core/design/widgets/skeleton_widgets.dart';
+
+import '../../../../shared/widgets/paisa_list_tile.dart';
 
 class RecentTransactions extends ConsumerWidget {
   final VoidCallback onSeeAll;
@@ -45,32 +46,30 @@ class RecentTransactions extends ConsumerWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: recent.length,
-              separatorBuilder: (_, __) => const Divider(height: 1, indent: 16, endIndent: 16),
+              separatorBuilder: (_, __) => const SizedBox(height: 4), // M3 lists often have space instead of dividers
               itemBuilder: (context, index) {
                 final tx = recent[index];
                 final category = tx.category.value;
-                  return ListTile(
-                    leading: Hero(
-                      tag: 'cat_icon_${tx.id}',
-                      child: CircleAvatar(
-                        backgroundColor: Color(int.parse(category?.color ?? '0xFF9E9E9E')),
-                        child: const Icon(Icons.category, color: Colors.white, size: 20),
-                      ),
-                    ),
-                    title: Text(category?.name ?? 'Unknown'),
-                    subtitle: Text(DateFormat.yMMMd().format(tx.date)),
-                    trailing: Text(
-                      '${tx.type == TransactionType.expense ? '-' : '+'}\$${tx.amount.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        color: tx.type == TransactionType.expense ? Colors.red : Colors.green,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  );
+                final isExpense = tx.type == TransactionType.expense;
+                final amountColor = isExpense ? Colors.red : Colors.green;
+                final iconColor = Color(int.parse(category?.color ?? '0xFF9E9E9E'));
+                
+                return PaisaListTile(
+                  title: category?.name ?? 'Unknown',
+                  subtitle: DateFormat.yMMMd().format(tx.date),
+                  amount: '${isExpense ? '-' : '+'}\$${tx.amount.toStringAsFixed(2)}',
+                  amountColor: amountColor,
+                  icon: Icons.category, // Replace with actual category icon later
+                  iconColor: iconColor,
+                  iconBackgroundColor: iconColor.withOpacity(0.1),
+                  onTap: () {
+                    // Navigate to transaction details
+                  },
+                );
               },
             );
           },
-          loading: () => const SkeletonList(itemCount: 5, itemHeight: 72),
+          loading: () => const Padding(padding: EdgeInsets.all(16.0), child: Center(child: CircularProgressIndicator())),
           error: (err, _) => Container(
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(16),

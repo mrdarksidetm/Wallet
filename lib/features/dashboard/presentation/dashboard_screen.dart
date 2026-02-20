@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/design/app_design.dart';
+import '../../../../core/theme/typography.dart';
 import 'widgets/balance_card.dart';
 import 'widgets/overview_cards.dart';
 import 'widgets/recent_transaction_list.dart';
@@ -28,7 +28,7 @@ class DashboardScreen extends ConsumerWidget {
              title: Text(
               greeting,
               style: TextStyle(
-                fontFamily: AppDesign.fontProductSans,
+                fontFamily: AppTypography.fontFamily,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
                 color: Theme.of(context).colorScheme.onSurface,

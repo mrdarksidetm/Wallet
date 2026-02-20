@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/database/providers.dart';
+import '../../../../shared/widgets/paisa_card.dart';
 
 class OverviewCards extends ConsumerWidget {
   const OverviewCards({super.key});
@@ -53,10 +54,9 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
+    return PaisaCard(
+      margin: EdgeInsets.zero,
       color: color.withOpacity(0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

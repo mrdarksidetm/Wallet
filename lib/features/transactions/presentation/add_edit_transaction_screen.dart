@@ -5,6 +5,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/database/models/category.dart';
+import '../../../shared/widgets/paisa_calculator.dart';
 
 class AddEditTransactionScreen extends ConsumerStatefulWidget {
   final TransactionModel? transaction;
@@ -16,8 +17,7 @@ class AddEditTransactionScreen extends ConsumerStatefulWidget {
 }
 
 class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScreen> {
-  final _formKey = GlobalKey<FormState>();
-  late double _amount;
+  late String _amountString;
   late DateTime _date;
   late TransactionType _type;
   String? _note;
@@ -29,7 +29,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
   void initState() {
     super.initState();
     if (widget.transaction != null) {
-      _amount = widget.transaction!.amount;
+      _amountString = widget.transaction!.amount.toStringAsFixed(2).replaceAll(RegExp(r'\.00$'), '');
       _date = widget.transaction!.date;
       _type = widget.transaction!.type;
       _note = widget.transaction!.note;
@@ -37,20 +37,21 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
       _selectedCategory = widget.transaction!.category.value;
       _selectedTransferAccount = widget.transaction!.transferAccount.value;
     } else {
-      _amount = 0.0;
+      _amountString = '0';
       _date = DateTime.now();
       _type = TransactionType.expense;
     }
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
-    _formKey.currentState!.save();
+    final amount = double.tryParse(_amountString) ?? 0.0;
+    if (amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid amount')));
+      return;
+    }
 
     if (_selectedAccount == null || _selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select account and category')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select account and category')));
       return;
     }
 
@@ -59,7 +60,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
     try {
       if (widget.transaction == null) {
         await service.addTransaction(
-          amount: _amount,
+          amount: amount,
           date: _date,
           type: _type,
           account: _selectedAccount!,
@@ -70,7 +71,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
       } else {
         final updatedTx = TransactionModel()
           ..id = widget.transaction!.id
-          ..amount = _amount
+          ..amount = amount
           ..date = _date
           ..type = _type
           ..note = _note
@@ -84,147 +85,221 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
       }
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
-  Future<void> _delete() async {
-    if (widget.transaction == null) return;
-    
-    final service = ref.read(transactionServiceProvider);
-    await service.deleteTransaction(widget.transaction!);
-    if (mounted) Navigator.pop(context);
+  void _showCategoryPicker(List<Category> categories) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        final filtered = categories.where((c) => _type == TransactionType.transfer ? true : c.type.name == _type.name).toList();
+        return ListView.builder(
+          itemCount: filtered.length,
+          itemBuilder: (context, index) {
+            final cat = filtered[index];
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Color(int.parse(cat.color)),
+                child: const Icon(Icons.category, color: Colors.white, size: 20),
+              ),
+              title: Text(cat.name),
+              onTap: () {
+                setState(() => _selectedCategory = cat);
+                Navigator.pop(context);
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showAccountPicker(List<Account> accounts, {bool isTransfer = false}) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return ListView.builder(
+          itemCount: accounts.length,
+          itemBuilder: (context, index) {
+            final acc = accounts[index];
+            return ListTile(
+              title: Text(acc.name),
+              subtitle: Text('\$${acc.balance.toStringAsFixed(2)}'),
+              onTap: () {
+                setState(() {
+                  if (isTransfer) {
+                    _selectedTransferAccount = acc;
+                  } else {
+                    _selectedAccount = acc;
+                  }
+                });
+                Navigator.pop(context);
+              },
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final accountsAsync = ref.watch(accountsStreamProvider);
     final categoriesAsync = ref.watch(categoriesStreamProvider);
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        title: Text(widget.transaction == null ? 'Add Transaction' : 'Edit Transaction'),
-        actions: [
-          if (widget.transaction != null)
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: _delete,
-            ),
-        ],
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(widget.transaction == null ? 'Add Transaction' : 'Edit Transaction', style: const TextStyle(fontSize: 18)),
+        centerTitle: true,
       ),
-      body: Hero(
-        tag: 'fab_add',
-        child: Material(
-          type: MaterialType.transparency,
-          child: Form(
-            key: _formKey,
-            child: ListView(
-          padding: const EdgeInsets.all(16),
+      body: SafeArea(
+        child: Column(
           children: [
-            // Type Selector
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: TransactionType.values.map((type) {
-                return ChoiceChip(
-                  label: Text(type.name.toUpperCase()),
-                  selected: _type == type,
-                  onSelected: (selected) {
-                    if (selected) setState(() => _type = type);
-                  },
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-            // Amount
-            TextFormField(
-              initialValue: _amount == 0 ? '' : _amount.toString(),
-              decoration: const InputDecoration(labelText: 'Amount', prefixText: '\$'),
-              keyboardType: TextInputType.number,
-              validator: (val) => (val == null || double.tryParse(val) == null || double.parse(val) <= 0) ? 'Enter valid amount' : null,
-              onSaved: (val) => _amount = double.parse(val!),
-            ),
-            const SizedBox(height: 16),
-            // Account
-            accountsAsync.when(
-              data: (accounts) => DropdownButtonFormField<Account>(
-                value: accounts.any((a) => a.id == _selectedAccount?.id) 
-                    ? accounts.firstWhere((a) => a.id == _selectedAccount?.id)
-                    : null,
-                items: accounts.map((a) => DropdownMenuItem(value: a, child: Text('${a.name} (\$${a.balance.toStringAsFixed(2)})'))).toList(),
-                onChanged: (val) => setState(() => _selectedAccount = val),
-                decoration: const InputDecoration(labelText: 'Account'),
-              ),
-              loading: () => const LinearProgressIndicator(),
-              error: (err, stack) => const Text('Error loading accounts'),
-            ),
-            if (_type == TransactionType.transfer) ...[
-              const SizedBox(height: 16),
-              accountsAsync.when(
-                data: (accounts) => DropdownButtonFormField<Account>(
-                  value: accounts.any((a) => a.id == _selectedTransferAccount?.id) 
-                      ? accounts.firstWhere((a) => a.id == _selectedTransferAccount?.id)
-                      : null,
-                  items: accounts.map((a) => DropdownMenuItem(value: a, child: Text('${a.name} (\$${a.balance.toStringAsFixed(2)})'))).toList(),
-                  onChanged: (val) => setState(() => _selectedTransferAccount = val),
-                  decoration: const InputDecoration(labelText: 'To Account'),
+            // Amount Display
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    // Type Tabs (Expense / Income / Transfer)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: TransactionType.values.map((type) {
+                          final isSelected = _type == type;
+                          return GestureDetector(
+                            onTap: () => setState(() {
+                              _type = type;
+                              _selectedCategory = null; // Reset category on type change
+                            }),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Text(
+                                type.name[0].toUpperCase() + type.name.substring(1),
+                                style: TextStyle(
+                                  color: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    // Large Amount Text
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '\$$_amountString',
+                        style: TextStyle(
+                          fontSize: 64,
+                          fontWeight: FontWeight.bold,
+                          color: _type == TransactionType.expense ? Colors.red : (_type == TransactionType.income ? Colors.green : theme.colorScheme.onSurface),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    
+                    // Selectors (Chips)
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 12,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        // Category Chip
+                        categoriesAsync.when(
+                          data: (categories) => ActionChip(
+                            avatar: _selectedCategory != null 
+                                ? CircleAvatar(backgroundColor: Color(int.parse(_selectedCategory!.color)), radius: 12, child: const Icon(Icons.category, size: 12, color: Colors.white)) 
+                                : const Icon(Icons.category, size: 16),
+                            label: Text(_selectedCategory?.name ?? 'Category'),
+                            onPressed: () => _showCategoryPicker(categories),
+                          ),
+                          loading: () => const Chip(label: Text('Loading...')),
+                          error: (_, __) => const Chip(label: Text('Error')),
+                        ),
+                        
+                        // Account Chip
+                        accountsAsync.when(
+                          data: (accounts) => ActionChip(
+                            avatar: const Icon(Icons.account_balance_wallet, size: 16),
+                            label: Text(_selectedAccount?.name ?? 'Account'),
+                            onPressed: () => _showAccountPicker(accounts),
+                          ),
+                          loading: () => const Chip(label: Text('Loading...')),
+                          error: (_, __) => const Chip(label: Text('Error')),
+                        ),
+
+                        // Transfer Account Chip (if transfer)
+                        if (_type == TransactionType.transfer)
+                          accountsAsync.when(
+                            data: (accounts) => ActionChip(
+                              avatar: const Icon(Icons.arrow_forward, size: 16),
+                              label: Text(_selectedTransferAccount?.name ?? 'To Account'),
+                              onPressed: () => _showAccountPicker(accounts, isTransfer: true),
+                            ),
+                            loading: () => const Chip(label: Text('Loading...')),
+                            error: (_, __) => const Chip(label: Text('Error')),
+                          ),
+                          
+                        // Date Chip
+                        ActionChip(
+                          avatar: const Icon(Icons.calendar_today, size: 16),
+                          label: Text(DateFormat('MMM dd').format(_date)),
+                          onPressed: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: _date,
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime(2100),
+                            );
+                            if (picked != null) setState(() => _date = picked);
+                          },
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    // Note Field
+                    TextField(
+                      controller: TextEditingController(text: _note)..selection = TextSelection.collapsed(offset: _note?.length ?? 0),
+                      onChanged: (val) => _note = val,
+                      decoration: InputDecoration(
+                        hintText: 'Add a note...',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                    ),
+                  ],
                 ),
-                loading: () => const LinearProgressIndicator(),
-                error: (err, stack) => const Text('Error loading accounts'),
               ),
-            ],
-            const SizedBox(height: 16),
-            // Category
-            categoriesAsync.when(
-              data: (categories) {
-                final filtered = categories.where((c) => _type == TransactionType.transfer ? true : c.type.name == _type.name).toList();
-                return DropdownButtonFormField<Category>(
-                  value: filtered.any((Category c) => c.id == _selectedCategory?.id) 
-                      ? filtered.firstWhere((Category c) => c.id == _selectedCategory?.id)
-                      : null,
-                  items: filtered.map<DropdownMenuItem<Category>>((Category c) => DropdownMenuItem<Category>(value: c, child: Text(c.name))).toList(),
-                  onChanged: (val) => setState(() => _selectedCategory = val),
-                  decoration: const InputDecoration(labelText: 'Category'),
-                );
-              },
-              loading: () => const LinearProgressIndicator(),
-              error: (err, stack) => const Text('Error loading categories'),
             ),
-            const SizedBox(height: 16),
-            // Date
-            ListTile(
-              title: const Text('Date'),
-              subtitle: Text(DateFormat.yMMMd().format(_date)),
-              onTap: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: _date,
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2100),
-                );
-                if (picked != null) setState(() => _date = picked);
-              },
+            
+            // Custom Numpad Keyboard
+            PaisaCalculator(
+              amountString: _amountString,
+              onAmountChanged: (val) => setState(() => _amountString = val),
+              onSubmit: _save,
             ),
-            const SizedBox(height: 16),
-            // Note
-            TextFormField(
-              initialValue: _note,
-              decoration: const InputDecoration(labelText: 'Note'),
-              onSaved: (val) => _note = val,
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _save,
-              child: const Text('Save Transaction'),
-            ),
-            ],
-            ),
-          ),
+          ],
         ),
       ),
     );
   }
 }
+

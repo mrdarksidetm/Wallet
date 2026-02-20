@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/design/design_controller.dart';
+import '../../core/theme/theme_provider.dart';
 import 'glass_surface.dart';
 
 class AppButton extends ConsumerWidget {
@@ -15,7 +15,7 @@ class AppButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isLiquid = ref.watch(designControllerProvider).isLiquid;
+    final isLiquid = ref.watch(themeControllerProvider).isLiquid;
 
     if (isLiquid) {
       return GlassSurface(

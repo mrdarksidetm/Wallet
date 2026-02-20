@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/design/app_design.dart';
 
 class EmojiText extends StatelessWidget {
   final String text;
@@ -19,8 +18,7 @@ class EmojiText extends StatelessWidget {
       text,
       textAlign: textAlign,
       style: (style ?? const TextStyle()).copyWith(
-        fontFamily: AppDesign.fontEmoji,
-        fontFamilyFallback: [AppDesign.fontEmoji],
+        fontFamilyFallback: const ['AppleColorEmoji'],
       ),
     );
   }

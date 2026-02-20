@@ -31,12 +31,18 @@ dependencies:
   flutter_svg: 2.0.10+1
   intl: 0.20.2
   cupertino_icons: 1.0.8
+  
+  # Theming & Icons (Paisa Replica)
+  flex_color_picker: ^3.4.1
+  material_symbols_icons: ^4.27.6
+  dynamic_color: ^1.7.0
 
   # File / Permissions
   csv: 6.0.0
   permission_handler: 12.0.1
   open_filex: ^4.4.0
   flutter_markdown: ^0.7.1
+  url_launcher: ^6.2.6
 
 dev_dependencies:
   flutter_test:
@@ -55,6 +61,9 @@ dev_dependencies:
  
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/images/
 
   fonts:
     - family: ProductSans

@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../insights/services/financial_insight_service.dart';
 import 'package:wallet/core/database/providers.dart';
 import '../../insights/models/financial_insight_model.dart';
-import '../../../core/design/widgets/skeleton_widgets.dart';
 
 class InsightsScreen extends ConsumerWidget {
   const InsightsScreen({super.key});
@@ -155,15 +154,7 @@ class _LoadingView extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Padding(
       padding: EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          SkeletonCard(height: 120, borderRadius: BorderRadius.all(Radius.circular(16))),
-          SizedBox(height: 16),
-          SkeletonCard(height: 120, borderRadius: BorderRadius.all(Radius.circular(16))),
-          SizedBox(height: 16),
-          SkeletonCard(height: 120, borderRadius: BorderRadius.all(Radius.circular(16))),
-        ],
-      ),
+      child: Center(child: CircularProgressIndicator()),
     );
   }
 }
