@@ -1,3 +1,7 @@
+import java.util.Properties
+import java.io.FileInputStream
+import java.util.Base64
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -6,9 +10,9 @@ plugins {
 }
 
 val keystorePropertiesFile = rootProject.file("key.properties")
-val keystoreProperties = java.util.Properties()
+val keystoreProperties = Properties()
 if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -54,7 +58,7 @@ android {
 
             val base64Key = System.getenv("CM_KEYSTORE_BASE64")
             if (base64Key != null && base64Key.isNotEmpty()) {
-                val decodedBytes = java.util.Base64.getDecoder().decode(base64Key)
+                val decodedBytes = Base64.getDecoder().decode(base64Key)
                 val tempKeyFile = file("upload-keystore.jks")
                 tempKeyFile.writeBytes(decodedBytes)
                 storeFile = tempKeyFile
