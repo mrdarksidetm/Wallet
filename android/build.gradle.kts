@@ -15,8 +15,7 @@ subprojects {
             if (android.namespace == null) {
                 android.namespace = project.group.toString() + "." + project.name.replace("-", "_")
             }
-            android.compileSdkVersion(34)
-            android.compileSdkVersion(34)
+            android.compileSdkVersion(36)
         }
     }
 }
