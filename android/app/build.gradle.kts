@@ -58,7 +58,11 @@ android {
 
             val base64Key = System.getenv("CM_KEYSTORE_BASE64")
             if (base64Key != null && base64Key.isNotEmpty()) {
-                val cleanBase64 = base64Key.replace("\\s".toRegex(), "")
+                var cleanBase64 = base64Key.replace("\\s".toRegex(), "")
+                val padding = (4 - cleanBase64.length % 4) % 4
+                if (padding > 0) {
+                    cleanBase64 += "=".repeat(padding)
+                }
                 val decodedBytes = Base64.getDecoder().decode(cleanBase64)
                 val tempKeyFile = file("upload-keystore.jks")
                 tempKeyFile.writeBytes(decodedBytes)
