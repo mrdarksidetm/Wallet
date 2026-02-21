@@ -53,7 +53,7 @@ workflows:
           cat > android/key.properties <<EOF
           storePassword=$CM_KEYSTORE_PASSWORD
           keyPassword=$CM_KEY_PASSWORD
-          keyAlias=$CM_KEY_ALIAS
+          keyAlias=upload
           storeFile=upload-keystore.jks
           EOF
 
