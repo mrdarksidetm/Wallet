@@ -5,8 +5,6 @@ workflows:
     instance_type: mac_mini_m2
 
     environment:
-      groups:
-        - keystore_credentials
       flutter: stable
       java: 17
 
@@ -46,10 +44,6 @@ workflows:
       - name: Static Analysis
         script: |
           flutter analyze
-
-      - name: Configure Keystore
-        script: |
-          echo "$CM_KEYSTORE_BASE64" | tr -d '\n\r ' | base64 --decode > android/upload-keystore.jks
 
       - name: Build Android Release APKs
         script: |
