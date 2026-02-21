@@ -51,12 +51,17 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties.getProperty("keyAlias")
-            keyPassword = keystoreProperties.getProperty("keyPassword")
-            storePassword = keystoreProperties.getProperty("storePassword")
-            val storeFileStr = keystoreProperties.getProperty("storeFile")
-            if (storeFileStr != null && storeFileStr.isNotEmpty()) {
-                storeFile = rootProject.file(storeFileStr)
+            val rawAlias = keystoreProperties.getProperty("keyAlias")
+            val rawKeyPass = keystoreProperties.getProperty("keyPassword")
+            val rawStorePass = keystoreProperties.getProperty("storePassword")
+            val rawStoreFile = keystoreProperties.getProperty("storeFile")
+
+            keyAlias = rawAlias?.trim()
+            storePassword = rawStorePass?.trim()
+            keyPassword = rawKeyPass?.trim()?.takeIf { it.isNotEmpty() } ?: storePassword
+
+            if (rawStoreFile != null && rawStoreFile.trim().isNotEmpty()) {
+                storeFile = rootProject.file(rawStoreFile.trim())
             }
         }
     }
