@@ -1,7 +1,3 @@
-import java.util.Properties
-import java.io.FileInputStream
-import java.util.Base64
-
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -10,9 +6,9 @@ plugins {
 }
 
 val keystorePropertiesFile = rootProject.file("key.properties")
-val keystoreProperties = Properties()
+val keystoreProperties = java.util.Properties()
 if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+    keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -52,29 +48,11 @@ android {
 
     signingConfigs {
         create("release") {
-            val envAlias = System.getenv("CM_KEY_ALIAS")?.trim()?.replace("\"", "")
-            val envStorePass = System.getenv("CM_KEYSTORE_PASSWORD")?.trim()?.replace("\"", "")
-            val envKeyPass = System.getenv("CM_KEY_PASSWORD")?.trim()?.replace("\"", "")?.takeIf { it.isNotEmpty() } ?: envStorePass
-
-            keyAlias = keystoreProperties.getProperty("keyAlias") ?: envAlias
-            storePassword = keystoreProperties.getProperty("storePassword") ?: envStorePass
-            keyPassword = keystoreProperties.getProperty("keyPassword") ?: envKeyPass
-
-            val base64Key = System.getenv("CM_KEYSTORE_BASE64")
-            if (base64Key != null && base64Key.isNotEmpty()) {
-                var cleanBase64 = base64Key.replace("\\s".toRegex(), "")
-                val padding = (4 - cleanBase64.length % 4) % 4
-                if (padding > 0) {
-                    cleanBase64 += "=".repeat(padding)
-                }
-                val decodedBytes = Base64.getDecoder().decode(cleanBase64)
-                val tempKeyFile = file("upload-keystore.jks")
-                tempKeyFile.writeBytes(decodedBytes)
-                storeFile = tempKeyFile
-            } else {
-                val storeFileStr = keystoreProperties.getProperty("storeFile") ?: System.getenv("CM_KEYSTORE_PATH")
-                storeFile = storeFileStr?.let { file(it) }
-            }
+            keyAlias = keystoreProperties.getProperty("keyAlias")
+            keyPassword = keystoreProperties.getProperty("keyPassword")
+            storePassword = keystoreProperties.getProperty("storePassword")
+            val storeFileStr = keystoreProperties.getProperty("storeFile")
+            storeFile = storeFileStr?.let { file(it) }
         }
     }
 

@@ -47,6 +47,16 @@ workflows:
         script: |
           flutter analyze
 
+      - name: Configure Keystore
+        script: |
+          echo "$CM_KEYSTORE_BASE64" | tr -d '\n\r ' | base64 --decode > android/app/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyPassword=$CM_KEY_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          storeFile=upload-keystore.jks
+          EOF
+
       - name: Build Android Release APKs
         script: |
           mkdir -p build/artifacts
