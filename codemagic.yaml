@@ -49,7 +49,7 @@ workflows:
 
       - name: Configure Keystore
         script: |
-          echo "$CM_KEYSTORE_BASE64" | tr -d '\n\r ' | base64 --decode > android/app/upload-keystore.jks
+          echo "$CM_KEYSTORE_BASE64" | tr -d '\n\r ' | base64 --decode > android/upload-keystore.jks
           cat > android/key.properties <<EOF
           storePassword=$CM_KEYSTORE_PASSWORD
           keyPassword=$CM_KEY_PASSWORD
