@@ -52,13 +52,12 @@ android {
     signingConfigs {
         create("release") {
             val rawAlias = keystoreProperties.getProperty("keyAlias")
-            val rawKeyPass = keystoreProperties.getProperty("keyPassword")
             val rawStorePass = keystoreProperties.getProperty("storePassword")
             val rawStoreFile = keystoreProperties.getProperty("storeFile")
 
             keyAlias = rawAlias?.trim()
             storePassword = rawStorePass?.trim()
-            keyPassword = rawKeyPass?.trim()?.takeIf { it.isNotEmpty() } ?: storePassword
+            keyPassword = storePassword // Force identical passwords
 
             if (rawStoreFile != null && rawStoreFile.trim().isNotEmpty()) {
                 storeFile = rootProject.file(rawStoreFile.trim())
