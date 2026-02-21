@@ -32,39 +32,44 @@ const TransactionModelSchema = CollectionSchema(
       name: r'date',
       type: IsarType.dateTime,
     ),
-    r'isDeleted': PropertySchema(
+    r'icon': PropertySchema(
       id: 3,
+      name: r'icon',
+      type: IsarType.string,
+    ),
+    r'isDeleted': PropertySchema(
+      id: 4,
       name: r'isDeleted',
       type: IsarType.bool,
     ),
     r'isRecurringInstance': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isRecurringInstance',
       type: IsarType.bool,
     ),
     r'note': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'note',
       type: IsarType.string,
     ),
     r'originalRecurringId': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'originalRecurringId',
       type: IsarType.long,
     ),
     r'tags': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'tags',
       type: IsarType.stringList,
     ),
     r'type': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'type',
       type: IsarType.string,
       enumMap: _TransactionModeltypeEnumValueMap,
     ),
     r'updatedAt': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -102,6 +107,12 @@ const TransactionModelSchema = CollectionSchema(
       target: r'Category',
       single: true,
     ),
+    r'person': LinkSchema(
+      id: -2068533578490934007,
+      name: r'person',
+      target: r'Person',
+      single: true,
+    ),
     r'transferAccount': LinkSchema(
       id: -557000978173223011,
       name: r'transferAccount',
@@ -122,6 +133,12 @@ int _transactionModelEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.icon;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.note;
     if (value != null) {
@@ -148,13 +165,14 @@ void _transactionModelSerialize(
   writer.writeDouble(offsets[0], object.amount);
   writer.writeDateTime(offsets[1], object.createdAt);
   writer.writeDateTime(offsets[2], object.date);
-  writer.writeBool(offsets[3], object.isDeleted);
-  writer.writeBool(offsets[4], object.isRecurringInstance);
-  writer.writeString(offsets[5], object.note);
-  writer.writeLong(offsets[6], object.originalRecurringId);
-  writer.writeStringList(offsets[7], object.tags);
-  writer.writeString(offsets[8], object.type.name);
-  writer.writeDateTime(offsets[9], object.updatedAt);
+  writer.writeString(offsets[3], object.icon);
+  writer.writeBool(offsets[4], object.isDeleted);
+  writer.writeBool(offsets[5], object.isRecurringInstance);
+  writer.writeString(offsets[6], object.note);
+  writer.writeLong(offsets[7], object.originalRecurringId);
+  writer.writeStringList(offsets[8], object.tags);
+  writer.writeString(offsets[9], object.type.name);
+  writer.writeDateTime(offsets[10], object.updatedAt);
 }
 
 TransactionModel _transactionModelDeserialize(
@@ -167,16 +185,17 @@ TransactionModel _transactionModelDeserialize(
   object.amount = reader.readDouble(offsets[0]);
   object.createdAt = reader.readDateTime(offsets[1]);
   object.date = reader.readDateTime(offsets[2]);
+  object.icon = reader.readStringOrNull(offsets[3]);
   object.id = id;
-  object.isDeleted = reader.readBool(offsets[3]);
-  object.isRecurringInstance = reader.readBool(offsets[4]);
-  object.note = reader.readStringOrNull(offsets[5]);
-  object.originalRecurringId = reader.readLongOrNull(offsets[6]);
-  object.tags = reader.readStringList(offsets[7]) ?? [];
+  object.isDeleted = reader.readBool(offsets[4]);
+  object.isRecurringInstance = reader.readBool(offsets[5]);
+  object.note = reader.readStringOrNull(offsets[6]);
+  object.originalRecurringId = reader.readLongOrNull(offsets[7]);
+  object.tags = reader.readStringList(offsets[8]) ?? [];
   object.type =
-      _TransactionModeltypeValueEnumMap[reader.readStringOrNull(offsets[8])] ??
+      _TransactionModeltypeValueEnumMap[reader.readStringOrNull(offsets[9])] ??
           TransactionType.income;
-  object.updatedAt = reader.readDateTime(offsets[9]);
+  object.updatedAt = reader.readDateTime(offsets[10]);
   return object;
 }
 
@@ -194,20 +213,22 @@ P _transactionModelDeserializeProp<P>(
     case 2:
       return (reader.readDateTime(offset)) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
       return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readStringList(offset) ?? []) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 8:
+      return (reader.readStringList(offset) ?? []) as P;
+    case 9:
       return (_TransactionModeltypeValueEnumMap[
               reader.readStringOrNull(offset)] ??
           TransactionType.income) as P;
-    case 9:
+    case 10:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -230,7 +251,12 @@ Id _transactionModelGetId(TransactionModel object) {
 }
 
 List<IsarLinkBase<dynamic>> _transactionModelGetLinks(TransactionModel object) {
-  return [object.account, object.category, object.transferAccount];
+  return [
+    object.account,
+    object.category,
+    object.person,
+    object.transferAccount
+  ];
 }
 
 void _transactionModelAttach(
@@ -238,6 +264,7 @@ void _transactionModelAttach(
   object.id = id;
   object.account.attach(col, col.isar.collection<Account>(), r'account', id);
   object.category.attach(col, col.isar.collection<Category>(), r'category', id);
+  object.person.attach(col, col.isar.collection<Person>(), r'person', id);
   object.transferAccount
       .attach(col, col.isar.collection<Account>(), r'transferAccount', id);
 }
@@ -598,6 +625,160 @@ extension TransactionModelQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+      iconIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'icon',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+      iconIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'icon',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+      iconEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'icon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+      iconGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'icon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+      iconLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'icon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+      iconBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'icon',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+      iconStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'icon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+      iconEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'icon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+      iconContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'icon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+      iconMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'icon',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+      iconIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'icon',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+      iconIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'icon',
+        value: '',
       ));
     });
   }
@@ -1358,6 +1539,20 @@ extension TransactionModelQueryLinks
   }
 
   QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+      person(FilterQuery<Person> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'person');
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+      personIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'person', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
       transferAccount(FilterQuery<Account> q) {
     return QueryBuilder.apply(this, (query) {
       return query.link(q, r'transferAccount');
@@ -1412,6 +1607,19 @@ extension TransactionModelQuerySortBy
       sortByDateDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'date', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy> sortByIcon() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'icon', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+      sortByIconDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'icon', Sort.desc);
     });
   }
 
@@ -1541,6 +1749,19 @@ extension TransactionModelQuerySortThenBy
     });
   }
 
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy> thenByIcon() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'icon', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+      thenByIconDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'icon', Sort.desc);
+    });
+  }
+
   QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -1659,6 +1880,13 @@ extension TransactionModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<TransactionModel, TransactionModel, QDistinct> distinctByIcon(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'icon', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<TransactionModel, TransactionModel, QDistinct>
       distinctByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
@@ -1732,6 +1960,12 @@ extension TransactionModelQueryProperty
   QueryBuilder<TransactionModel, DateTime, QQueryOperations> dateProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'date');
+    });
+  }
+
+  QueryBuilder<TransactionModel, String?, QQueryOperations> iconProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'icon');
     });
   }
 

@@ -14,6 +14,12 @@ class AppTheme {
       colorScheme: scheme,
       textTheme: AppTypography.textTheme,
       fontFamily: AppTypography.fontFamily,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        }
+      ),
       // Add other component themes here (Card, AppBar, etc.)
     );
   }
@@ -29,6 +35,12 @@ class AppTheme {
       colorScheme: scheme,
       textTheme: AppTypography.textTheme, // Apply typography to dark mode too
       fontFamily: AppTypography.fontFamily,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        }
+      ),
     );
   }
 }

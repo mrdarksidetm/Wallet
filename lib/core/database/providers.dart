@@ -65,6 +65,11 @@ final budgetRepositoryProvider = Provider<BudgetRepository>((ref) {
   return BudgetRepository(isar);
 });
 
+final personRepositoryProvider = Provider<PersonRepository>((ref) {
+  final isar = ref.watch(isarProvider).value!;
+  return PersonRepository(isar);
+});
+
 final loanRepositoryProvider = Provider<LoanRepository>((ref) {
   final isar = ref.watch(isarProvider).value!;
   return LoanRepository(isar);
@@ -153,5 +158,10 @@ final loansStreamProvider = StreamProvider<List<Loan>>((ref) {
 
 final goalsStreamProvider = StreamProvider<List<Goal>>((ref) {
   final repo = ref.watch(goalRepositoryProvider);
+  return repo.watchAll();
+});
+
+final personsStreamProvider = StreamProvider<List<Person>>((ref) {
+  final repo = ref.watch(personRepositoryProvider);
   return repo.watchAll();
 });

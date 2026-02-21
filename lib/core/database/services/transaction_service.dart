@@ -1,6 +1,7 @@
 import 'package:isar/isar.dart';
 import '../models/account.dart';
 import '../models/category.dart';
+import '../models/auxiliary_models.dart';
 import '../models/transaction_model.dart';
 import '../repositories/account_repository.dart';
 import '../repositories/transaction_repository.dart';
@@ -23,7 +24,9 @@ class TransactionService {
     required TransactionType type,
     required Account account,
     required Category category,
+    Person? person,
     String? note,
+    String? icon,
     Account? transferAccount,
     List<String> tags = const [],
   }) async {
@@ -42,12 +45,14 @@ class TransactionService {
         ..date = date
         ..type = type
         ..note = note
+        ..icon = icon
         ..tags = tags
         ..createdAt = DateTime.now()
         ..updatedAt = DateTime.now();
 
       transaction.account.value = account;
       transaction.category.value = category;
+      transaction.person.value = person;
 
       // 2. Update Balance
       if (type == TransactionType.income) {
@@ -111,6 +116,9 @@ class TransactionService {
          await isar.accounts.put(account); // Save the reverted one
       }
       await isar.accounts.put(newAcc);
+      
+      // Update the person link and custom icon
+      newTransaction.person.value = newTransaction.person.value; 
       
       newTransaction.updatedAt = DateTime.now();
       await isar.transactionModels.put(newTransaction);

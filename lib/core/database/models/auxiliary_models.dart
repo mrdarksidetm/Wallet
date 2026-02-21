@@ -11,6 +11,7 @@ class Person {
   late String name;
   String? contact;
   String? avatar;
+  late String color;
   late DateTime createdAt;
   late DateTime updatedAt;
   bool isDeleted = false;

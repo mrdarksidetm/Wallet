@@ -10,6 +10,14 @@ class BudgetRepository extends BaseRepository<Budget> {
   }
 }
 
+class PersonRepository extends BaseRepository<Person> {
+  PersonRepository(super.isar);
+
+  Stream<List<Person>> watchAll() {
+    return isar.persons.where().sortByName().watch(fireImmediately: true);
+  }
+}
+
 class LoanRepository extends BaseRepository<Loan> {
   LoanRepository(super.isar);
 

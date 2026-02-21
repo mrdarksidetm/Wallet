@@ -1,6 +1,7 @@
 import 'package:isar/isar.dart';
 import 'account.dart';
 import 'category.dart';
+import 'auxiliary_models.dart';
 
 part 'transaction_model.g.dart'; // Naming as transaction_model to avoid conflict with generic names
 
@@ -23,10 +24,14 @@ class TransactionModel {
   
   final category = IsarLink<Category>();
   
+  final person = IsarLink<Person>();
+  
   // For transfers only
   final transferAccount = IsarLink<Account>();
 
   List<String> tags = [];
+  
+  String? icon; // Allows a specific transaction to override a category icon
 
   // For recurring instances
   bool isRecurringInstance = false;

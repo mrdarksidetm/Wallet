@@ -5,6 +5,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/database/models/category.dart';
+import '../../../core/database/models/auxiliary_models.dart';
 import '../../../shared/widgets/paisa_calculator.dart';
 
 class AddEditTransactionScreen extends ConsumerStatefulWidget {
@@ -24,6 +25,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
   Account? _selectedAccount;
   Category? _selectedCategory;
   Account? _selectedTransferAccount;
+  Person? _selectedPerson;
 
   @override
   void initState() {
@@ -36,6 +38,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
       _selectedAccount = widget.transaction!.account.value;
       _selectedCategory = widget.transaction!.category.value;
       _selectedTransferAccount = widget.transaction!.transferAccount.value;
+      _selectedPerson = widget.transaction!.person.value;
     } else {
       _amountString = '0';
       _date = DateTime.now();
@@ -65,6 +68,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
           type: _type,
           account: _selectedAccount!,
           category: _selectedCategory!,
+          person: _selectedPerson,
           note: _note,
           transferAccount: _selectedTransferAccount,
         );
@@ -80,6 +84,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
         updatedTx.account.value = _selectedAccount;
         updatedTx.category.value = _selectedCategory;
         updatedTx.transferAccount.value = _selectedTransferAccount;
+        updatedTx.person.value = _selectedPerson;
 
         await service.updateTransaction(widget.transaction!, updatedTx);
       }
@@ -143,11 +148,37 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
     );
   }
 
+  void _showPersonPicker(List<Person> persons) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return ListView.builder(
+          itemCount: persons.length,
+          itemBuilder: (context, index) {
+            final p = persons[index];
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Color(int.parse(p.color)),
+                child: Text(p.name[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
+              ),
+              title: Text(p.name),
+              onTap: () {
+                setState(() => _selectedPerson = p);
+                Navigator.pop(context);
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accountsAsync = ref.watch(accountsStreamProvider);
     final categoriesAsync = ref.watch(categoriesStreamProvider);
+    final personsAsync = ref.watch(personsStreamProvider);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -252,6 +283,20 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
                               avatar: const Icon(Icons.arrow_forward, size: 16),
                               label: Text(_selectedTransferAccount?.name ?? 'To Account'),
                               onPressed: () => _showAccountPicker(accounts, isTransfer: true),
+                            ),
+                            loading: () => const Chip(label: Text('Loading...')),
+                            error: (_, __) => const Chip(label: Text('Error')),
+                          ),
+                          
+                        // Person Chip (if expense/income)
+                        if (_type != TransactionType.transfer)
+                          personsAsync.when(
+                            data: (persons) => ActionChip(
+                              avatar: _selectedPerson != null 
+                                  ? CircleAvatar(backgroundColor: Color(int.parse(_selectedPerson!.color)), radius: 12, child: Text(_selectedPerson!.name[0].toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 10))) 
+                                  : const Icon(Icons.person_outline, size: 16),
+                              label: Text(_selectedPerson?.name ?? 'Person'),
+                              onPressed: () => _showPersonPicker(persons),
                             ),
                             loading: () => const Chip(label: Text('Loading...')),
                             error: (_, __) => const Chip(label: Text('Error')),

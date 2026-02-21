@@ -17,8 +17,10 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final greeting = ref.watch(greetingServiceProvider).getGreeting();
 
-    return CustomScrollView(
-      slivers: [
+    return SafeArea(
+      bottom: false,
+      child: CustomScrollView(
+        slivers: [
         SliverAppBar(
           expandedHeight: 60,
           floating: true,
@@ -53,6 +55,7 @@ class DashboardScreen extends ConsumerWidget {
         ),
         const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
       ],
+      ),
     );
   }
 }
