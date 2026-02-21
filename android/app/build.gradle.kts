@@ -51,16 +51,23 @@ android {
 
     signingConfigs {
         create("release") {
-            val rawAlias = keystoreProperties.getProperty("keyAlias")
-            val rawStorePass = keystoreProperties.getProperty("storePassword")
-            val rawStoreFile = keystoreProperties.getProperty("storeFile")
+            val envStorePass = System.getenv("CM_KEYSTORE_PASSWORD")?.trim()?.replace("\"", "")
+            val rawStorePass = keystoreProperties.getProperty("storePassword")?.trim()
+            val finalStorePass = envStorePass?.takeIf { it.isNotEmpty() } ?: rawStorePass
+            
+            val envStoreFile = System.getenv("CM_KEYSTORE_PATH")?.trim()
+            val rawStoreFile = keystoreProperties.getProperty("storeFile")?.trim()
+            val finalStoreFile = envStoreFile?.takeIf { it.isNotEmpty() } ?: rawStoreFile
 
-            keyAlias = rawAlias?.trim()
-            storePassword = rawStorePass?.trim()
-            keyPassword = storePassword // Force identical passwords
+            keyAlias = "upload" // Hardcoded alias, proved by local keytool analysis
+            storePassword = finalStorePass
+            keyPassword = finalStorePass // Password proved identical locally
 
-            if (rawStoreFile != null && rawStoreFile.trim().isNotEmpty()) {
-                storeFile = rootProject.file(rawStoreFile.trim())
+            if (finalStoreFile != null && finalStoreFile.isNotEmpty()) {
+                storeFile = rootProject.file(finalStoreFile)
+            } else {
+                // Fallback to Codemagic YAML output location if property missing
+                storeFile = rootProject.file("upload-keystore.jks")
             }
         }
     }
