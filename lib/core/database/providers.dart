@@ -13,6 +13,8 @@ import 'services/loan_service.dart';
 import 'services/goal_service.dart';
 import 'services/recurring_service.dart';
 import 'services/csv_service.dart';
+import 'services/account_service.dart';
+import 'services/category_service.dart';
 import 'models/account.dart';
 import 'models/category.dart';
 import 'models/transaction_model.dart';
@@ -96,6 +98,18 @@ final budgetServiceProvider = Provider<BudgetService>((ref) {
   final isar = ref.watch(isarProvider).value!;
   final repo = ref.watch(budgetRepositoryProvider);
   return BudgetService(isar: isar, budgetRepository: repo);
+});
+
+final accountServiceProvider = Provider<AccountService>((ref) {
+  final isar = ref.watch(isarProvider).value!;
+  final repo = ref.watch(accountRepositoryProvider);
+  return AccountService(isar: isar, accountRepository: repo);
+});
+
+final categoryServiceProvider = Provider<CategoryService>((ref) {
+  final isar = ref.watch(isarProvider).value!;
+  final repo = ref.watch(categoryRepositoryProvider);
+  return CategoryService(isar: isar, categoryRepository: repo);
 });
 
 final loanServiceProvider = Provider<LoanService>((ref) {

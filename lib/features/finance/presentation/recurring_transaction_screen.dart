@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
+import '../../../shared/widgets/paisa_list_tile.dart';
 
 class RecurringTransactionScreen extends ConsumerWidget {
   const RecurringTransactionScreen({super.key});
@@ -34,9 +35,12 @@ class RecurringTransactionScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final item = items[index];
               final tx = item.transaction.value;
-              return ListTile(
-                title: Text(tx?.category.value?.name ?? 'Unknown'),
-                subtitle: Text('${item.frequency.name} • Next: ${item.nextDate.toString().split(' ')[0]}'),
+              return PaisaListTile(
+                title: tx?.category.value?.name ?? 'Unknown',
+                subtitle: '${item.frequency.name} • Next: ${item.nextDate.toString().split(' ')[0]}',
+                icon: Icons.repeat,
+                iconColor: Colors.white,
+                iconBackgroundColor: Color(int.parse(tx?.category.value?.color ?? '0xFF9E9E9E')),
                 trailing: Switch(
                   value: item.isActive,
                   onChanged: (val) {

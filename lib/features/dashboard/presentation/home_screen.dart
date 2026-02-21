@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dashboard_screen.dart';
 import '../../transactions/presentation/transaction_list_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
+import '../../insights/presentation/statistics_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -18,6 +19,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Dashboard (Placeholder for now, we pass callback dynamically)
     const SizedBox(), 
     const TransactionListScreen(),
+    const StatisticsScreen(),
     const SettingsScreen(),
   ];
 
@@ -43,6 +45,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             icon: Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long),
             label: 'Transactions',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.pie_chart_outline),
+            selectedIcon: Icon(Icons.pie_chart),
+            label: 'Statistics',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

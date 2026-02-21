@@ -5,6 +5,7 @@ import '../../../../core/database/providers.dart';
 import '../../../../core/database/models/transaction_model.dart';
 
 import '../../../../shared/widgets/paisa_list_tile.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class RecentTransactions extends ConsumerWidget {
   final VoidCallback onSeeAll;
@@ -65,7 +66,7 @@ class RecentTransactions extends ConsumerWidget {
                   onTap: () {
                     // Navigate to transaction details
                   },
-                );
+                ).animate(delay: (index * 100).ms).fade(duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad);
               },
             );
           },

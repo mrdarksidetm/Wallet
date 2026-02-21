@@ -7,6 +7,8 @@ import '../../finance/presentation/budget_screen.dart';
 import '../../finance/presentation/loan_screen.dart';
 import '../../finance/presentation/goal_screen.dart';
 import '../../finance/presentation/recurring_transaction_screen.dart';
+import '../../categories/presentation/category_screen.dart';
+import '../../accounts/presentation/account_screen.dart';
 import 'package:wallet/features/ai/presentation/insights_screen.dart';
 import 'about_screen.dart';
 class SettingsScreen extends ConsumerWidget {
@@ -95,6 +97,17 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           
+          const _SectionHeader(title: 'Manage'),
+          ListTile(
+            leading: const Icon(Icons.category),
+            title: const Text('Categories'),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoryScreen())),
+          ),
+          ListTile(
+            leading: const Icon(Icons.account_balance_wallet),
+            title: const Text('Accounts'),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AccountScreen())),
+          ),
           const _SectionHeader(title: 'Finance'),
           ListTile(
             leading: const Icon(Icons.pie_chart),

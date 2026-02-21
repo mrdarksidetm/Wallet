@@ -3,23 +3,25 @@ import 'package:flutter/material.dart';
 class PaisaListTile extends StatelessWidget {
   final String title;
   final String subtitle;
-  final String amount;
-  final Color amountColor;
+  final String? amount;
+  final Color? amountColor;
   final IconData icon;
   final Color iconColor;
   final Color iconBackgroundColor;
   final VoidCallback? onTap;
+  final Widget? trailing;
 
   const PaisaListTile({
     super.key,
     required this.title,
     required this.subtitle,
-    required this.amount,
-    required this.amountColor,
+    this.amount,
+    this.amountColor,
     required this.icon,
     required this.iconColor,
     required this.iconBackgroundColor,
     this.onTap,
+    this.trailing,
   });
 
   @override
@@ -51,14 +53,14 @@ class PaisaListTile extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      trailing: Text(
-        amount,
+      trailing: trailing ?? (amount != null ? Text(
+        amount!,
         style: TextStyle(
           color: amountColor,
           fontWeight: FontWeight.bold,
           fontSize: 16,
         ),
-      ),
+      ) : null),
     );
   }
 }

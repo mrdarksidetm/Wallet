@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
 import '../../../core/database/models/category.dart';
+import '../../../shared/widgets/paisa_list_tile.dart';
+import '../../../shared/widgets/app_button.dart';
 
 class BudgetScreen extends ConsumerWidget {
   const BudgetScreen({super.key});
@@ -22,9 +24,14 @@ class BudgetScreen extends ConsumerWidget {
             itemCount: budgets.length,
             itemBuilder: (context, index) {
               final budget = budgets[index];
-              return ListTile(
-                title: Text(budget.category.value?.name ?? 'Unknown Category'),
-                subtitle: Text('${budget.period.name} • \$${budget.amount}'),
+              return PaisaListTile(
+                title: budget.category.value?.name ?? 'Unknown Category',
+                subtitle: budget.period.name,
+                amount: '\$${budget.amount}',
+                amountColor: Theme.of(context).colorScheme.primary,
+                icon: Icons.account_balance_wallet,
+                iconColor: Colors.white,
+                iconBackgroundColor: Color(int.parse(budget.category.value?.color ?? '0xFF9E9E9E')),
                 trailing: IconButton(
                    icon: const Icon(Icons.delete),
                    onPressed: () {
@@ -102,7 +109,7 @@ class _AddBudgetDialogState extends ConsumerState<AddBudgetDialog> {
       ),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-        ElevatedButton(
+        AppButton(
           onPressed: () async {
             if (_formKey.currentState!.validate() && _selectedCategory != null) {
               _formKey.currentState!.save();

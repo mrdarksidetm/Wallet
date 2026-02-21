@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/database/providers.dart';
 import '../../../../shared/widgets/paisa_card.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class OverviewCards extends ConsumerWidget {
   const OverviewCards({super.key});
@@ -87,6 +88,6 @@ class _StatCard extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ).animate().fade(delay: 200.ms, duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad);
   }
 }

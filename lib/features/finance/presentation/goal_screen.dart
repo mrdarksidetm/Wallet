@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
+import '../../../shared/widgets/paisa_list_tile.dart';
+import '../../../shared/widgets/app_button.dart';
 
 class GoalScreen extends ConsumerWidget {
   const GoalScreen({super.key});
@@ -17,15 +19,14 @@ class GoalScreen extends ConsumerWidget {
           itemCount: goals.length,
           itemBuilder: (context, index) {
             final goal = goals[index];
-            return ListTile(
-              title: Text(goal.name),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('\$${goal.currentAmount} / \$${goal.targetAmount}'),
-                  LinearProgressIndicator(value: goal.currentAmount / goal.targetAmount),
-                ],
-              ),
+            return PaisaListTile(
+              title: goal.name,
+              subtitle: 'Progress: ${(goal.currentAmount / goal.targetAmount * 100).toStringAsFixed(0)}%',
+              amount: '\$${goal.currentAmount} / \$${goal.targetAmount}',
+              amountColor: Theme.of(context).colorScheme.primary,
+              icon: Icons.flag,
+              iconColor: Colors.white,
+              iconBackgroundColor: Color(int.parse(goal.color)),
               onTap: () {
                 // Simple dialog to update amount
                 _showUpdateDialog(context, ref, goal);
@@ -52,7 +53,7 @@ class GoalScreen extends ConsumerWidget {
          content: TextField(controller: controller, keyboardType: TextInputType.number),
          actions: [
            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-           ElevatedButton(
+           AppButton(
              onPressed: () async {
                final val = double.tryParse(controller.text) ?? 0.0;
                await ref.read(goalServiceProvider).updateAmount(goal, val);
@@ -98,7 +99,7 @@ class _AddGoalDialogState extends ConsumerState<AddGoalDialog> {
       ),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-        ElevatedButton(
+        AppButton(
           onPressed: () async {
             if (_formKey.currentState!.validate()) {
               _formKey.currentState!.save();

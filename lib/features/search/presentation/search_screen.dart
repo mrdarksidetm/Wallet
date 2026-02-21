@@ -5,6 +5,7 @@ import '../../../core/database/providers.dart';
 import '../../../core/database/models/transaction_model.dart';
 import '../../../core/database/models/account.dart';
 import '../../../core/database/models/category.dart';
+import '../../../shared/widgets/paisa_list_tile.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -133,17 +134,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                      itemCount: _results.length,
                      itemBuilder: (context, index) {
                        final tx = _results[index];
-                       return ListTile(
-                         title: Text(tx.category.value?.name ?? 'Unknown'),
-                         subtitle: Text('${DateFormat.yMMMd().format(tx.date)}\n${tx.note ?? ""}'),
-                         isThreeLine: true,
-                         trailing: Text(
-                           '${tx.type == TransactionType.expense ? '-' : '+'}\$${tx.amount.toStringAsFixed(2)}',
-                           style: TextStyle(
-                            color: tx.type == TransactionType.expense ? Colors.red : Colors.green,
-                            fontWeight: FontWeight.bold,
-                           ),
-                         ),
+                       return PaisaListTile(
+                         title: tx.category.value?.name ?? 'Unknown',
+                         subtitle: '${DateFormat.yMMMd().format(tx.date)}${tx.note != null && tx.note!.isNotEmpty ? ' • ${tx.note}' : ""}',
+                         amount: '${tx.type == TransactionType.expense ? '-' : '+'}\$${tx.amount.toStringAsFixed(2)}',
+                         amountColor: tx.type == TransactionType.expense ? Colors.red : Colors.green,
+                         icon: Icons.category,
+                         iconColor: Colors.white,
+                         iconBackgroundColor: Color(int.parse(tx.category.value?.color ?? '0xFF9E9E9E')),
                        );
                      },
                    ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/providers.dart';
 import '../../../core/database/models/auxiliary_models.dart';
+import '../../../shared/widgets/paisa_list_tile.dart';
+import '../../../shared/widgets/app_button.dart';
 
 class LoanScreen extends ConsumerWidget {
   const LoanScreen({super.key});
@@ -55,9 +57,12 @@ class _LoanList extends StatelessWidget {
       itemCount: loans.length,
       itemBuilder: (context, index) {
         final loan = loans[index];
-        return ListTile(
-          title: Text(loan.person.value?.name ?? 'Unknown'),
-          subtitle: Text('\$${loan.amount} - ${loan.isPaid ? 'Paid' : 'Unpaid'}'),
+        return PaisaListTile(
+          title: loan.person.value?.name ?? 'Unknown',
+          subtitle: '\$${loan.amount} - ${loan.isPaid ? 'Paid' : 'Unpaid'}',
+          icon: loan.type == LoanType.lent ? Icons.arrow_upward : Icons.arrow_downward,
+          iconColor: Colors.white,
+          iconBackgroundColor: loan.type == LoanType.lent ? Colors.red : Colors.green,
           trailing: Checkbox(
             value: loan.isPaid,
             onChanged: (val) {
@@ -111,12 +116,12 @@ class _AddLoanDialogState extends ConsumerState<AddLoanDialog> {
       ),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-        ElevatedButton(
+        AppButton(
           onPressed: () async {
             if (_formKey.currentState!.validate()) {
               _formKey.currentState!.save();
               // Create a temporary person for now since Person CRUD is not full
-              final person = Person()..name = _personName..createdAt = DateTime.now()..updatedAt = DateTime.now();
+              final person = Person()..name = _personName..createdAt = DateTime.now()..updatedAt = DateTime.now()..color = '0xFF2196F3';
               await ref.read(isarProvider).value!.writeTxn(() async {
                 await ref.read(isarProvider).value!.persons.put(person);
               });
