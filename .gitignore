@@ -7,6 +7,9 @@
 build/
 !gradle-wrapper.jar
 
+# Paise Replica
+Goal/
+
 # Android Studio / IntelliJ IDEA
 .idea/
 *.iml
