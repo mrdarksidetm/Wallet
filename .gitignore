@@ -1,0 +1,34 @@
+# ──────────────────────────────────────────────
+# Wallet (Jetpack Compose) — .gitignore
+# ──────────────────────────────────────────────
+
+# Gradle
+.gradle/
+build/
+!gradle-wrapper.jar
+
+# Android Studio / IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+.navigation/
+captures/
+
+# Kotlin
+.kotlin/
+
+# Local config
+local.properties
+
+# Keystore
+*.jks
+*.keystore
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
