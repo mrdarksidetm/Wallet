@@ -138,6 +138,8 @@ Whenever you successfully implement a new feature, UI change, or database altera
 1. Open `D:\Ideas\Antigravity\Wallet\SPEC.md` and update it to reflect the new reality of the app (e.g., check off boxes in the Feature Parity Checklist, update the Data Model tables, or add new UI specs).
 2. Copy the newly updated `SPEC.md` file and overwrite the exact same file located at `D:\Ideas\Antigravity\Wallet-Flutter\SPEC.md` so the Flutter project stays in perfect sync. You can use a terminal command to copy the file over.
 
+**CRITICAL RULE:** Always check and always update the SPEC.md file in BOTH the repositories (Wallet and Wallet-Flutter) whenever any changes are made.
+
 ### grep / search (large results)
 Search results can flood context. Use `mcp__context-mode__ctx_execute(language: "shell", code: "grep ...")` to run searches in sandbox. Only your printed summary enters context.
 

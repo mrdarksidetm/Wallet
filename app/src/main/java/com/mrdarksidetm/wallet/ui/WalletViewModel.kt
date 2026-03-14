@@ -58,15 +58,19 @@ class WalletViewModel(
         
         transactions
             .filter { it.type == "Expense" }
+            // Group the filtered expenses by their category name to aggregate amounts
             .groupBy { it.category }
             .map { (category, list) ->
+                // Calculate the total amount spent for this specific category
                 val amount = list.sumOf { it.amount }
                 CategorySpending(
                     category = category,
                     amount = amount,
+                    // Math: Divide category amount by the total month expense to get the percentage ratio (0.0 to 1.0)
                     percentage = (amount / totalExpense).toFloat()
                 )
             }
+            // Sort the resulting list descending so highest spending categories appear at the top
             .sortedByDescending { it.amount }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
