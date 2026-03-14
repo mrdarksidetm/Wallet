@@ -48,7 +48,11 @@ data class Transaction(
     val date: Long, // Stored as Unix timestamp for fast querying and indexing
     val type: TransactionType,
     val categoryId: String,
-    val accountId: String
+    val accountId: String,
+    
+    // Phase 35: Privacy Geofencing (Foreground only location tagging)
+    val latitude: Double? = null,
+    val longitude: Double? = null
 )
 
 /**

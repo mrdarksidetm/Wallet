@@ -26,7 +26,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "wallet_database"
                 )
-                .fallbackToDestructiveMigration() // Reset DB for dev
+                // Phase 22: Removed fallbackToDestructiveMigration()
+                .addMigrations(MIGRATION_1_2)
                 .addCallback(object : Callback() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)

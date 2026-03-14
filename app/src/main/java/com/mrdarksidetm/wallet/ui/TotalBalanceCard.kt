@@ -14,6 +14,9 @@ import androidx.compose.ui.unit.dp
 
 import com.mrdarksidetm.wallet.ui.utils.AnimatedCounter
 
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+
 @Composable
 fun TotalBalanceCard(
     balance: Double,
@@ -26,7 +29,12 @@ fun TotalBalanceCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(16.dp)
+            .semantics(mergeDescendants = true) {
+                contentDescription = "Total Balance is ${if (isVisible) balance.toString() else "Hidden"}. " +
+                        "This month's income is ${if (isVisible) income.toString() else "Hidden"}, " +
+                        "and expense is ${if (isVisible) expense.toString() else "Hidden"}."
+            },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
