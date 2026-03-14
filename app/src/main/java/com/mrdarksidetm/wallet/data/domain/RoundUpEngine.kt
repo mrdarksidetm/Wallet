@@ -2,6 +2,7 @@ package com.mrdarksidetm.wallet.data.domain
 
 import androidx.room.withTransaction
 import com.mrdarksidetm.wallet.data.AppDatabase
+import com.mrdarksidetm.wallet.data.TransactionEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -18,31 +19,31 @@ import java.util.UUID
  */
 class RoundUpEngine(private val db: AppDatabase) {
     suspend fun insertExpenseWithRoundUp(
-        expense: Transaction, 
+        expense: TransactionEntity, 
         savingsAccountId: String, 
         isRoundUpEnabled: Boolean
     ) {
         withContext(Dispatchers.IO) {
             db.withTransaction {
                 // 1. Insert original expense
-                db.transactionDao().add(expense)
+                db.transactionDao().insertTransaction(expense)
 
                 // 2. Calculate fractional difference if Round Up is active
-                if (isRoundUpEnabled && expense.type == TransactionType.EXPENSE) {
+                if (isRoundUpEnabled && expense.type == "Expense") {
                     val ceilValue = Math.ceil(expense.amount)
                     val difference = ceilValue - expense.amount
 
                     if (difference > 0) {
-                        val roundUpTransfer = Transaction(
+                        val roundUpTransfer = TransactionEntity(
                             id = UUID.randomUUID().toString(),
                             amount = difference,
                             note = "Round-up from ${expense.note ?: "expense"}",
                             date = expense.date,
-                            type = TransactionType.TRANSFER,
-                            categoryId = expense.categoryId, // Keep original category for tracking
+                            type = "Transfer",
+                            category = expense.category, // Keep original category for tracking
                             accountId = savingsAccountId
                         )
-                        db.transactionDao().add(roundUpTransfer)
+                        db.transactionDao().insertTransaction(roundUpTransfer)
                     }
                 }
             }

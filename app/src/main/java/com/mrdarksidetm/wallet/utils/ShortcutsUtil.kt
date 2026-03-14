@@ -5,7 +5,7 @@ import android.content.Intent
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
-import com.mrdarksidetm.wallet.ui.MainActivity
+import com.mrdarksidetm.wallet.MainActivity
 
 /**
  * Phase 15: Home Screen Shortcuts & Deep Linking

@@ -35,7 +35,7 @@ abstract class AppDatabase : RoomDatabase() {
                         INSTANCE?.let { database ->
                             CoroutineScope(Dispatchers.IO).launch {
                                 database.accountDao().insertAccount(
-                                    AccountEntity(id = 1, name = "Cash", type = "Cash", initialBalance = 0.0)
+                                    AccountEntity(id = "default_cash", name = "Cash", type = "Cash", initialBalance = 0.0)
                                 )
                                 database.categoryDao().insertCategories(
                                     listOf(
