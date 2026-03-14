@@ -23,5 +23,5 @@ interface AccountDao {
     fun getAllAccounts(): Flow<List<AccountEntity>>
     
     @Query("SELECT * FROM accounts WHERE id = :id LIMIT 1")
-    suspend fun getAccountById(id: Long): AccountEntity?
+    suspend fun getAccountById(id: String): AccountEntity?
 }

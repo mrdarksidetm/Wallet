@@ -9,22 +9,28 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.mrdarksidetm.wallet.ui.screens.HeatmapScreen
+import com.mrdarksidetm.wallet.ui.screens.SearchScreen
 
 @Composable
 fun PaisaNavGraph(navController: NavHostController) {
     NavHost(navController = navController, startDestination = "Home") {
-        composable("Home") {
-            PlaceholderScreen("Home Screen")
-        }
-        composable("Accounts") {
-            PlaceholderScreen("Accounts Screen")
-        }
-        composable("Reports") {
-            PlaceholderScreen("Reports Screen")
-        }
-        composable("Search") {
-            PlaceholderScreen("Search Screen")
-        }
+        composable("Home") { PlaceholderScreen("Home Screen") }
+        composable("Accounts") { PlaceholderScreen("Accounts Screen") }
+        composable("Reports") { PlaceholderScreen("Reports Screen") }
+        
+        // Phase 2 Routes
+        composable("search") { SearchScreen() }
+        composable("heatmap") { HeatmapScreen() }
+        composable("insights") { PlaceholderScreen("Insights") }
+        composable("budgets") { PlaceholderScreen("Budgets") }
+        composable("bill-splitter") { PlaceholderScreen("Bill Splitter") }
+        composable("goals") { PlaceholderScreen("Goals") }
+        composable("loans") { PlaceholderScreen("Loans") }
+        composable("recurring") { PlaceholderScreen("Recurring Transactions") }
+        composable("settings") { PlaceholderScreen("Settings") }
+        composable("export") { PlaceholderScreen("CSV Export") }
+        composable("contacts") { PlaceholderScreen("People / Contacts") }
     }
 }
 
