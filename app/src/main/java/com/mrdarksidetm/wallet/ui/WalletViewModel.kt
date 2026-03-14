@@ -37,7 +37,7 @@ class WalletViewModel(
 ) : ViewModel() {
 
     // The default account UUID for offline-first local testing
-    private val defaultAccountId = "default_account_id"
+    private val defaultAccountId = "default_cash"
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
