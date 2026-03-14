@@ -16,8 +16,14 @@
 | Min Android    | API 29 (Android 10)                     |
 | Target Android | API 34 (Android 14)                     |
 | Design System  | Google Material 3 Expressive            |
+| Iconography    | Adaptive Icons (Android)                |
 | Architecture   | MVVM + Unidirectional Data Flow         |
 | Network        | **Offline-first. Zero network calls.**  |
+
+### 1.1 Iconography
+- **Foreground**: Wallet Logo (`Wallet - Transparent.svg`)
+- **Background**: `#fff8f6` (Light), `#1a110e` (Dark)
+- **Monochrome Support**: Logo with `#795548`
 
 ---
 
@@ -165,23 +171,23 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 | Room/Isar database            | ✅      | ✅      |                               |
 | Accounts CRUD                 | ✅      | ✅      |                               |
 | Transactions CRUD             | ✅      | ✅      |                               |
-| Categories                    | ⬜      | ✅      | Compose needs category entity |
+| Categories                    | ✅      | ✅      |                               |
 | Dashboard (Total Balance)     | ✅      | ✅      |                               |
 | Overview Grid                 | ✅      | ✅      |                               |
 | Transaction List              | ✅      | ✅      |                               |
 | Swipe-to-delete               | ✅      | ✅      |                               |
 | Add Transaction Form          | ✅      | ✅      |                               |
-| Donut Chart (Canvas)          | ✅      | ⬜      | Flutter needs native chart    |
-| Spending Breakdown            | ✅      | ⬜      |                               |
-| Budgets                       | ⬜      | ✅      |                               |
-| Bill Splitter                 | ⬜      | ✅      |                               |
-| Goals                         | ⬜      | ✅      |                               |
-| Loans                         | ⬜      | ✅      |                               |
-| Recurring Transactions        | ⬜      | ✅      |                               |
-| Search                        | ⬜      | ✅      |                               |
-| Settings                      | ⬜      | ✅      |                               |
-| CSV Export                    | ⬜      | ✅      |                               |
-| People/Contacts               | ⬜      | ✅      |                               |
+| Donut Chart (Canvas)          | ✅      | ✅      |                               |
+| Spending Breakdown            | ✅      | ✅      |                               |
+| Budgets                       | ✅      | ✅      | Placeholder in Compose Grid   |
+| Bill Splitter                 | ✅      | ✅      | Placeholder in Compose Grid   |
+| Goals                         | ✅      | ✅      | Placeholder in Compose Grid   |
+| Loans                         | ✅      | ✅      | Placeholder in Compose Grid   |
+| Recurring Transactions        | ✅      | ✅      | Placeholder in Compose Grid   |
+| Search                        | ✅      | ✅      | Transition added to Compose   |
+| Settings                      | ✅      | ✅      | Placeholder added             |
+| CSV Export                    | ✅      | ✅      | Placeholder added             |
+| People/Contacts               | ✅      | ✅      | Placeholder added             |
 
 > ⬜ = Not yet implemented &nbsp; ✅ = Implemented
 
