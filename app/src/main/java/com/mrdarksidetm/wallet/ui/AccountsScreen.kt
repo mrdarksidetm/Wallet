@@ -27,6 +27,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.LaunchedEffect
 
+import com.mrdarksidetm.wallet.ui.utils.StaggeredAnimatedList
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AccountsScreen(viewModel: WalletViewModel, snackbarHostState: SnackbarHostState) {
@@ -40,46 +42,44 @@ fun AccountsScreen(viewModel: WalletViewModel, snackbarHostState: SnackbarHostSt
             modifier = Modifier.padding(16.dp)
         )
         
-        LazyColumn(
+        StaggeredAnimatedList(
+            items = recentTransactions,
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(recentTransactions, key = { it.id }) { transaction ->
-                val dismissState = rememberSwipeToDismissBoxState(
-                    confirmValueChange = { swipeValue ->
-                        // Only allow swipe to finish if it's StartToEnd
-                        swipeValue == SwipeToDismissBoxValue.StartToEnd
-                    }
-                )
+            key = { it.id }
+        ) { index, transaction, itemModifier ->
+            val dismissState = rememberSwipeToDismissBoxState(
+                confirmValueChange = { swipeValue ->
+                    swipeValue == SwipeToDismissBoxValue.StartToEnd
+                }
+            )
 
-                LaunchedEffect(dismissState.currentValue) {
-                    if (dismissState.currentValue == SwipeToDismissBoxValue.StartToEnd) {
-                        viewModel.deleteTransaction(transaction)
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Transaction Deleted")
-                        }
+            LaunchedEffect(dismissState.currentValue) {
+                if (dismissState.currentValue == SwipeToDismissBoxValue.StartToEnd) {
+                    viewModel.deleteTransaction(transaction)
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Transaction Deleted")
                     }
                 }
+            }
 
-                SwipeToDismissBox(
-                    state = dismissState,
-                    enableDismissFromEndToStart = false,
-                    modifier = Modifier.animateItemPlacement(),
-                    backgroundContent = {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.Red, shape = MaterialTheme.shapes.medium)
-                                .padding(horizontal = 16.dp),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
-                        }
+            SwipeToDismissBox(
+                state = dismissState,
+                enableDismissFromEndToStart = false,
+                modifier = itemModifier,
+                backgroundContent = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Red, shape = MaterialTheme.shapes.medium)
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
                     }
-                ) {
-                    TransactionItem(transaction = transaction)
                 }
+            ) {
+                TransactionItem(transaction = transaction)
             }
         }
     }

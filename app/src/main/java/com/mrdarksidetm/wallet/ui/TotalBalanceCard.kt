@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+import com.mrdarksidetm.wallet.ui.utils.AnimatedCounter
+
 @Composable
 fun TotalBalanceCard(
     balance: Double,
@@ -46,10 +48,18 @@ fun TotalBalanceCard(
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = if (isVisible) "₹${String.format("%.2f", balance)}" else "••••••",
-                        style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold)
-                    )
+                    
+                    if (isVisible) {
+                        AnimatedCounter(
+                            countString = "₹${String.format("%.2f", balance)}",
+                            style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold)
+                        )
+                    } else {
+                        Text(
+                            text = "••••••",
+                            style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
                 }
                 
                 IconButton(onClick = { isVisible = !isVisible }) {
