@@ -1,5 +1,6 @@
 package com.mrdarksidetm.wallet.data.domain
 
+import androidx.compose.runtime.Immutable
 import androidx.room.Dao
 import androidx.room.Entity
 import androidx.room.Insert
@@ -22,6 +23,12 @@ enum class TransactionType {
 /**
  * Data class representing a Transaction.
  * 
+ * Compose Optimization:
+ * @Immutable explicitly tells the Jetpack Compose compiler that all public properties
+ * of this class will never change after construction. This enables "Strong Skipping",
+ * preventing massive lists of Transactions from unnecessarily recomposing when unrelated 
+ * UI state changes, significantly boosting 120Hz scroll performance.
+ * 
  * Room Annotations:
  * @Entity: Marks this class as a table in the Room database. We explicitly define the table name.
  * @PrimaryKey: Marks 'id' as the unique identifier for each row.
@@ -31,6 +38,7 @@ enum class TransactionType {
  * This reduces data duplication, keeps the model lightweight, and allows for highly scalable
  * joins at the repository or UI layer.
  */
+@Immutable
 @Entity(tableName = "domain_transactions")
 data class Transaction(
     @PrimaryKey

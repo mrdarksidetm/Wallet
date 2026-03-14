@@ -1,5 +1,6 @@
 package com.mrdarksidetm.wallet.data.domain
 
+import androidx.compose.runtime.Immutable
 import androidx.room.Dao
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -7,6 +8,7 @@ import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
+@Immutable
 @Entity(tableName = "budgets")
 data class Budget(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),

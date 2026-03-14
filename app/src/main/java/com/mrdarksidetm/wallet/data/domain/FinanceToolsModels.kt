@@ -1,5 +1,6 @@
 package com.mrdarksidetm.wallet.data.domain
 
+import androidx.compose.runtime.Immutable
 import androidx.room.Dao
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -11,6 +12,7 @@ enum class LoanType {
     GIVEN, TAKEN
 }
 
+@Immutable
 @Entity(tableName = "goals")
 data class Goal(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
@@ -20,6 +22,7 @@ data class Goal(
     val deadline: Long
 )
 
+@Immutable
 @Entity(tableName = "loans")
 data class Loan(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),

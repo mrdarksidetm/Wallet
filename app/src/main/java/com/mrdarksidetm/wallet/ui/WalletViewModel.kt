@@ -1,5 +1,6 @@
 package com.mrdarksidetm.wallet.ui
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -18,6 +19,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * Law 1: Meaningful Names - CategorySpending clearly defines its purpose.
+ * Law 2: Single Responsibility - This class solely represents the UI state for category breakdown.
+ * Compose Optimization: @Immutable ensures the compiler skips recomposition when the list instance is unchanged.
+ */
+@Immutable
 data class CategorySpending(
     val category: String,
     val amount: Double,
@@ -29,23 +36,30 @@ class WalletViewModel(
     private val categoryDao: CategoryDao
 ) : ViewModel() {
 
+    // The default account UUID for offline-first local testing
+    private val defaultAccountId = "default_account_id"
+
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
+    /**
+     * Law 3: Clean Flow - Reactive streams map database state directly to UI state
+     * seamlessly without blocking the main thread.
+     */
     val categories: StateFlow<List<CategoryEntity>> = categoryDao.getAllCategories()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val recentTransactions: StateFlow<List<TransactionEntity>> = transactionDao.getAllTransactions()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val thisMonthIncome: StateFlow<Double> = transactionDao.getTotalIncome(1L)
+    val thisMonthIncome: StateFlow<Double> = transactionDao.getTotalIncome(defaultAccountId)
         .combine(MutableStateFlow(0.0)) { income, _ -> income ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
-    val thisMonthExpense: StateFlow<Double> = transactionDao.getTotalExpense(1L)
+    val thisMonthExpense: StateFlow<Double> = transactionDao.getTotalExpense(defaultAccountId)
         .combine(MutableStateFlow(0.0)) { expense, _ -> expense ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
@@ -58,19 +72,15 @@ class WalletViewModel(
         
         transactions
             .filter { it.type == "Expense" }
-            // Group the filtered expenses by their category name to aggregate amounts
             .groupBy { it.category }
             .map { (category, list) ->
-                // Calculate the total amount spent for this specific category
                 val amount = list.sumOf { it.amount }
                 CategorySpending(
                     category = category,
                     amount = amount,
-                    // Math: Divide category amount by the total month expense to get the percentage ratio (0.0 to 1.0)
                     percentage = (amount / totalExpense).toFloat()
                 )
             }
-            // Sort the resulting list descending so highest spending categories appear at the top
             .sortedByDescending { it.amount }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -84,7 +94,7 @@ class WalletViewModel(
                     type = type,
                     note = note,
                     category = category,
-                    accountId = 1L
+                    accountId = defaultAccountId // Updated to String for UUID migration
                 )
                 transactionDao.insertTransaction(transaction)
                 
@@ -114,7 +124,7 @@ class WalletViewModel(
                     type = if (isIncome) "Income" else "Expense",
                     note = note,
                     category = category,
-                    accountId = 1L
+                    accountId = defaultAccountId // Updated to String for UUID migration
                 )
                 transactionDao.insertTransaction(transaction)
                 
