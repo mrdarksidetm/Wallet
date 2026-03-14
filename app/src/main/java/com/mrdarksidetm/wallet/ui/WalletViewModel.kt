@@ -3,6 +3,8 @@ package com.mrdarksidetm.wallet.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.mrdarksidetm.wallet.data.CategoryDao
+import com.mrdarksidetm.wallet.data.CategoryEntity
 import com.mrdarksidetm.wallet.data.TransactionDao
 import com.mrdarksidetm.wallet.data.TransactionEntity
 import kotlinx.coroutines.Dispatchers
@@ -11,12 +13,20 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+data class CategorySpending(
+    val category: String,
+    val amount: Double,
+    val percentage: Float
+)
+
 class WalletViewModel(
-    private val transactionDao: TransactionDao
+    private val transactionDao: TransactionDao,
+    private val categoryDao: CategoryDao
 ) : ViewModel() {
 
     private val _error = MutableStateFlow<String?>(null)
@@ -24,6 +34,9 @@ class WalletViewModel(
 
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
+
+    val categories: StateFlow<List<CategoryEntity>> = categoryDao.getAllCategories()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val recentTransactions: StateFlow<List<TransactionEntity>> = transactionDao.getAllTransactions()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -40,11 +53,24 @@ class WalletViewModel(
         income - expense
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
-    fun insertDummyTransaction(amount: Double, onSuccess: () -> Unit) {
-        saveTransaction(amount = amount, note = "Dummy Transaction", type = "Expense", onSuccess = onSuccess)
-    }
+    val spendingByCategory: StateFlow<List<CategorySpending>> = combine(recentTransactions, thisMonthExpense) { transactions, totalExpense ->
+        if (totalExpense <= 0) return@combine emptyList<CategorySpending>()
+        
+        transactions
+            .filter { it.type == "Expense" }
+            .groupBy { it.category }
+            .map { (category, list) ->
+                val amount = list.sumOf { it.amount }
+                CategorySpending(
+                    category = category,
+                    amount = amount,
+                    percentage = (amount / totalExpense).toFloat()
+                )
+            }
+            .sortedByDescending { it.amount }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun saveTransaction(amount: Double, note: String, type: String, onSuccess: () -> Unit) {
+    fun saveTransaction(amount: Double, note: String, type: String, category: String, onSuccess: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _error.value = null
@@ -53,6 +79,7 @@ class WalletViewModel(
                     date = System.currentTimeMillis(),
                     type = type,
                     note = note,
+                    category = category,
                     accountId = 1L
                 )
                 transactionDao.insertTransaction(transaction)
@@ -66,7 +93,7 @@ class WalletViewModel(
         }
     }
 
-    fun addTransaction(amount: String, note: String, isIncome: Boolean, navigateBack: () -> Unit) {
+    fun addTransaction(amount: String, note: String, category: String, isIncome: Boolean, navigateBack: () -> Unit) {
         val parsedAmount = amount.toDoubleOrNull()
         if (parsedAmount == null || parsedAmount <= 0.0) {
             _error.value = "Please enter a valid amount."
@@ -82,6 +109,7 @@ class WalletViewModel(
                     date = System.currentTimeMillis(),
                     type = if (isIncome) "Income" else "Expense",
                     note = note,
+                    category = category,
                     accountId = 1L
                 )
                 transactionDao.insertTransaction(transaction)
@@ -112,12 +140,13 @@ class WalletViewModel(
     }
 
     class Factory(
-        private val transactionDao: TransactionDao
+        private val transactionDao: TransactionDao,
+        private val categoryDao: CategoryDao
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(WalletViewModel::class.java)) {
-                return WalletViewModel(transactionDao) as T
+                return WalletViewModel(transactionDao, categoryDao) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

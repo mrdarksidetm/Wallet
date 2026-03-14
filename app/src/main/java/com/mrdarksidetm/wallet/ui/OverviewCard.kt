@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OverviewCard(
     title: String,
@@ -20,9 +21,11 @@ fun OverviewCard(
     mainLabel: String,
     bottomValue: String,
     progress: Float? = null,
+    onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
+        onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(

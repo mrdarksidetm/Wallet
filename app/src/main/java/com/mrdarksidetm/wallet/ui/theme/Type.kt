@@ -38,6 +38,7 @@ import com.mrdarksidetm.wallet.R
 
 // FontVariation.Settings factory: creates a Font entry for a specific weight
 // while always keeping ROND=100 for maximum roundedness.
+@kotlin.OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
 private fun googleSansFlexFont(weight: FontWeight, wghtValue: Float): Font {
     return Font(
         resId = R.font.google_sans_flex,

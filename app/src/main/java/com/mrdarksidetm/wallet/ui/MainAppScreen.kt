@@ -1,6 +1,5 @@
 package com.mrdarksidetm.wallet.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -12,11 +11,9 @@ import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Receipt
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -32,8 +29,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mrdarksidetm.wallet.data.AppDatabase
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +40,7 @@ fun MainAppScreen() {
     val context = LocalContext.current
     val db = remember { AppDatabase.getDatabase(context) }
     val viewModel: WalletViewModel = viewModel(
-        factory = WalletViewModel.Factory(db.transactionDao())
+        factory = WalletViewModel.Factory(db.transactionDao(), db.categoryDao())
     )
 
     val navController = rememberNavController()
@@ -149,18 +148,34 @@ fun MainAppScreen() {
     ) { innerPadding ->
         Surface(modifier = Modifier.padding(innerPadding)) {
             NavHost(navController = navController, startDestination = "home") {
-                composable("home") { HomeScreen(viewModel) }
+                composable("home") { 
+                    val scope = rememberCoroutineScope()
+                    HomeScreen(
+                        viewModel = viewModel,
+                        onPlaceholderClick = { feature ->
+                            scope.launch {
+                                snackbarHostState.showSnackbar("$feature: Feature coming soon")
+                            }
+                        }
+                    ) 
+                }
                 composable("accounts") { AccountsScreen(viewModel, snackbarHostState) }
                 composable("reports") { ReportsScreen(viewModel) }
-                composable("search") { SearchScreen() }
-                composable("add_transaction") { AddTransactionScreen(navController, viewModel, snackbarHostState) }
+                composable(
+                    "search",
+                    enterTransition = { slideInVertically(initialOffsetY = { it }) },
+                    exitTransition = { slideOutVertically(targetOffsetY = { it }) }
+                ) { SearchScreen() }
+                composable("add_transaction") { 
+                    AddTransactionScreen(viewModel = viewModel, onBack = { navController.popBackStack() }) 
+                }
             }
         }
     }
 }
 
 @Composable
-fun HomeScreen(viewModel: WalletViewModel) {
+fun HomeScreen(viewModel: WalletViewModel, onPlaceholderClick: (String) -> Unit) {
     val totalBalance by viewModel.totalBalance.collectAsState()
     val thisMonthIncome by viewModel.thisMonthIncome.collectAsState()
     val thisMonthExpense by viewModel.thisMonthExpense.collectAsState()
@@ -192,7 +207,8 @@ fun HomeScreen(viewModel: WalletViewModel) {
                     mainCount = "1",
                     mainLabel = "Budget",
                     bottomValue = "₹500.00 left",
-                    progress = 0.3f
+                    progress = 0.3f,
+                    onClick = { onPlaceholderClick("Budgets") }
                 )
             }
             item {
@@ -202,7 +218,8 @@ fun HomeScreen(viewModel: WalletViewModel) {
                     mainCount = "2",
                     mainLabel = "Assets",
                     bottomValue = "₹1,000.00 total",
-                    progress = null
+                    progress = null,
+                    onClick = { onPlaceholderClick("Assets") }
                 )
             }
             item {
@@ -212,7 +229,8 @@ fun HomeScreen(viewModel: WalletViewModel) {
                     mainCount = "0",
                     mainLabel = "Bills",
                     bottomValue = "₹0.00 owed",
-                    progress = 0.0f
+                    progress = 0.0f,
+                    onClick = { onPlaceholderClick("Bill Splitter") }
                 )
             }
             item {
@@ -222,18 +240,22 @@ fun HomeScreen(viewModel: WalletViewModel) {
                     mainCount = "0",
                     mainLabel = "Loans",
                     bottomValue = "₹0.00 left",
-                    progress = null
+                    progress = null,
+                    onClick = { onPlaceholderClick("Loans") }
                 )
             }
         }
     }
 }
 
-
-
 @Composable
 fun SearchScreen() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Search Screen Content")
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Search Transactions", style = MaterialTheme.typography.titleLarge)
+            Text("Feature coming soon", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }

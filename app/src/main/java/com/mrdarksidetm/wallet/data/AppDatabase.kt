@@ -9,11 +9,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [AccountEntity::class, TransactionEntity::class], version = 1, exportSchema = false)
+@Database(entities = [AccountEntity::class, TransactionEntity::class, CategoryEntity::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
-
     abstract fun accountDao(): AccountDao
     abstract fun transactionDao(): TransactionDao
+    abstract fun categoryDao(): CategoryDao
 
     companion object {
         @Volatile
@@ -26,19 +26,26 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "wallet_database"
                 )
-                .fallbackToDestructiveMigration(dropAllTables = true)
-                .addCallback(object : RoomDatabase.Callback() {
+                .fallbackToDestructiveMigration() // Reset DB for dev
+                .addCallback(object : Callback() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)
+                        // Pre-populate with a default account and categories
                         INSTANCE?.let { database ->
                             CoroutineScope(Dispatchers.IO).launch {
-                                val defaultAccount = AccountEntity(
-                                    id = 1L,
-                                    name = "Cash",
-                                    type = "Cash",
-                                    initialBalance = 0.0
+                                database.accountDao().insertAccount(
+                                    AccountEntity(id = 1, name = "Cash", type = "Cash", initialBalance = 0.0)
                                 )
-                                database.accountDao().insertAccount(defaultAccount)
+                                database.categoryDao().insertCategories(
+                                    listOf(
+                                        CategoryEntity(name = "Food", icon = "restaurant"),
+                                        CategoryEntity(name = "Salary", icon = "payments"),
+                                        CategoryEntity(name = "Transport", icon = "directions_car"),
+                                        CategoryEntity(name = "Entertainment", icon = "movie"),
+                                        CategoryEntity(name = "Health", icon = "medical_services"),
+                                        CategoryEntity(name = "Other", icon = "category")
+                                    )
+                                )
                             }
                         }
                     }

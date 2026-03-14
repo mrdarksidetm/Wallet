@@ -23,5 +23,6 @@ data class TransactionEntity(
     val date: Long,
     val type: String, // Income, Expense, Transfer
     val note: String,
+    val category: String, // e.g., "Food", "Salary"
     val accountId: Long
 )
