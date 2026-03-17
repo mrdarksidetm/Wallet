@@ -1,7 +1,9 @@
 package com.mrdarksidetm.wallet.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import android.content.Context
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -13,6 +15,7 @@ import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.*
@@ -39,8 +42,16 @@ import kotlinx.coroutines.launch
 fun MainAppScreen() {
     val context = LocalContext.current
     val db = remember { AppDatabase.getDatabase(context) }
+    val sharedPreferences = remember { context.getSharedPreferences("wallet_prefs", Context.MODE_PRIVATE) }
     val viewModel: WalletViewModel = viewModel(
-        factory = WalletViewModel.Factory(db.transactionDao(), db.categoryDao())
+        factory = WalletViewModel.Factory(
+            db.accountDao(),
+            db.transactionDao(), 
+            db.categoryDao(),
+            db.personDao(),
+            db.loanDao(),
+            sharedPreferences
+        )
     )
 
     val navController = rememberNavController()
@@ -50,61 +61,53 @@ fun MainAppScreen() {
     val icons = listOf(Icons.Default.Home, Icons.Default.List, Icons.Default.PieChart, Icons.Default.Search)
     
     val snackbarHostState = remember { SnackbarHostState() }
+    val userName by viewModel.userName.collectAsState()
+    val userPhotoPath by viewModel.userPhotoPath.collectAsState()
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { 
-                    Column {
-                        Text(
-                            text = "Good evening",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.AccountBalanceWallet, 
+                            contentDescription = "App Logo", 
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(end = 8.dp).size(28.dp)
                         )
-                        Text(
-                            text = "User",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                        )
-                    }
-                },
-                navigationIcon = {
-                    Box(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "U",
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            style = MaterialTheme.typography.titleMedium
-                        )
+                        Column {
+                            Text(
+                                text = "Good evening",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = userName,
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            )
+                        }
                     }
                 },
                 actions = {
-                    Surface(
-                        color = MaterialTheme.colorScheme.tertiaryContainer,
-                        shape = MaterialTheme.shapes.small,
-                        modifier = Modifier.padding(end = 16.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    Icon(
+                        Icons.Rounded.Star, 
+                        contentDescription = "Premium", 
+                        tint = Color(0xFFFFD700), 
+                        modifier = Modifier.padding(end = 12.dp).size(28.dp)
+                    )
+                    IconButton(onClick = { navController.navigate("profile") }) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Star,
-                                contentDescription = "Premium",
-                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Premium",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                                text = userName.take(1).uppercase(),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                style = MaterialTheme.typography.titleMedium
                             )
                         }
                     }
@@ -115,7 +118,12 @@ fun MainAppScreen() {
             )
         },
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(24.dp)),
+                tonalElevation = 8.dp
+            ) {
                 items.forEachIndexed { index, item ->
                     NavigationBarItem(
                         icon = { Icon(icons[index], contentDescription = itemLabels[index]) },
@@ -136,13 +144,19 @@ fun MainAppScreen() {
             }
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { 
-                    viewModel.clearError()
-                    navController.navigate("add_transaction")
+            if (selectedItem == 0 || selectedItem == 1) {
+                FloatingActionButton(
+                    onClick = { 
+                        viewModel.clearError()
+                        if (selectedItem == 0) navController.navigate("add_transaction")
+                        else navController.navigate("add_account")
+                    }
+                ) { 
+                    Icon(
+                        if (selectedItem == 0) Icons.Default.Add else Icons.Default.AccountBalanceWallet, 
+                        contentDescription = "Add"
+                    ) 
                 }
-            ) { 
-                Icon(Icons.Default.Add, contentDescription = "Add") 
             }
         }
     ) { innerPadding ->
@@ -152,6 +166,7 @@ fun MainAppScreen() {
                     val scope = rememberCoroutineScope()
                     HomeScreen(
                         viewModel = viewModel,
+                        onLoansClick = { navController.navigate("loans") },
                         onPlaceholderClick = { feature ->
                             scope.launch {
                                 snackbarHostState.showSnackbar("$feature: Feature coming soon")
@@ -169,81 +184,107 @@ fun MainAppScreen() {
                 composable("add_transaction") { 
                     AddTransactionScreen(viewModel = viewModel, onBack = { navController.popBackStack() }) 
                 }
+                composable("add_account") {
+                    AddAccountScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+                }
+                composable("profile") {
+                    ProfileScreen(viewModel, onBack = { navController.popBackStack() }, onSettingsClick = { navController.navigate("settings") })
+                }
+                composable("settings") {
+                    SettingsScreen(onBack = { navController.popBackStack() })
+                }
+                composable("loans") {
+                    LoanScreen(viewModel, onBack = { navController.popBackStack() })
+                }
             }
         }
     }
 }
 
 @Composable
-fun HomeScreen(viewModel: WalletViewModel, onPlaceholderClick: (String) -> Unit) {
+fun HomeScreen(viewModel: WalletViewModel, onLoansClick: () -> Unit, onPlaceholderClick: (String) -> Unit) {
     val totalBalance by viewModel.totalBalance.collectAsState()
     val thisMonthIncome by viewModel.thisMonthIncome.collectAsState()
     val thisMonthExpense by viewModel.thisMonthExpense.collectAsState()
+    val recentTransactions by viewModel.recentTransactions.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        TotalBalanceCard(
-            balance = totalBalance,
-            income = thisMonthIncome,
-            expense = thisMonthExpense
-        )
+    androidx.compose.foundation.lazy.LazyColumn(modifier = Modifier.fillMaxSize()) {
+        item {
+            TotalBalanceCard(
+                balance = totalBalance,
+                income = thisMonthIncome,
+                expense = thisMonthExpense
+            )
+        }
         
-        Text(
-            text = "Overview",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
+        item {
+            Text(
+                text = "Overview",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
         
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth().weight(1f)
-        ) {
-            item {
-                OverviewCard(
-                    title = "Budgets",
-                    icon = Icons.Default.PieChart,
-                    mainCount = "1",
-                    mainLabel = "Budget",
-                    bottomValue = "₹500.00 left",
-                    progress = 0.3f,
-                    onClick = { onPlaceholderClick("Budgets") }
-                )
+        item {
+            val menuItems = listOf(
+                "Budgets" to Icons.Default.PieChart,
+                "Assets" to Icons.Default.AccountBalanceWallet,
+                "Bill Splitter" to Icons.Default.Receipt,
+                "Loans" to Icons.Default.CreditCard,
+                "Goals" to Icons.Rounded.Star,
+                "Labels*" to Icons.Default.List,
+                "Analytics*" to Icons.Default.PieChart,
+                "Recurring" to Icons.Default.List,
+                "Categories*" to Icons.Default.List,
+                "Weekly*" to Icons.Default.List,
+                "Places*" to Icons.Default.List,
+                "Person*" to Icons.Default.List,
+                "Calendar heatmap" to Icons.Default.List,
+                "Trend" to Icons.Default.List,
+                "Recent txns*" to Icons.Default.List
+            )
+
+            Column(modifier = Modifier.padding(16.dp)) {
+                val chunkedItems = menuItems.chunked(2)
+                chunkedItems.forEachIndexed { index, rowItems ->
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        for (menuItem in rowItems) {
+                            OverviewCard(
+                                title = menuItem.first,
+                                icon = menuItem.second,
+                                mainCount = if (menuItem.first == "Loans" || menuItem.first == "Assets" || menuItem.first == "Budgets") "1" else "0",
+                                mainLabel = menuItem.first.replace("*", ""),
+                                bottomValue = "-",
+                                progress = null,
+                                onClick = { if (menuItem.first == "Loans") onLoansClick() else onPlaceholderClick(menuItem.first) },
+                                modifier = Modifier.weight(1f).height(120.dp)
+                            )
+                        }
+                        if (rowItems.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                    if (index < chunkedItems.size - 1) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
             }
-            item {
-                OverviewCard(
-                    title = "Assets",
-                    icon = Icons.Default.AccountBalanceWallet,
-                    mainCount = "2",
-                    mainLabel = "Assets",
-                    bottomValue = "₹1,000.00 total",
-                    progress = null,
-                    onClick = { onPlaceholderClick("Assets") }
-                )
-            }
-            item {
-                OverviewCard(
-                    title = "Bill Splitter",
-                    icon = Icons.Default.Receipt,
-                    mainCount = "0",
-                    mainLabel = "Bills",
-                    bottomValue = "₹0.00 owed",
-                    progress = 0.0f,
-                    onClick = { onPlaceholderClick("Bill Splitter") }
-                )
-            }
-            item {
-                OverviewCard(
-                    title = "Loans",
-                    icon = Icons.Default.CreditCard,
-                    mainCount = "0",
-                    mainLabel = "Loans",
-                    bottomValue = "₹0.00 left",
-                    progress = null,
-                    onClick = { onPlaceholderClick("Loans") }
-                )
-            }
+        }
+
+        item {
+            Text(
+                text = "Recent Transactions",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
+
+        items(recentTransactions.take(10)) { transaction ->
+            TransactionItem(transaction = transaction, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+        }
+        
+        item {
+            Spacer(modifier = Modifier.height(80.dp)) // padding for bottom bar
         }
     }
 }

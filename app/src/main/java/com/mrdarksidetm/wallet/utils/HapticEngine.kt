@@ -6,6 +6,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.annotation.RequiresApi
+import androidx.annotation.RequiresPermission
 
 /**
  * Phase 43: Tactile Haptic Engine
@@ -16,7 +17,8 @@ import androidx.annotation.RequiresApi
  * We safely check the Build SDK version before firing custom wave patterns.
  */
 object HapticEngine {
-    
+
+    @RequiresPermission(android.Manifest.permission.VIBRATE)
     fun performTick(context: Context) {
         val vibrator = getVibrator(context)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -27,6 +29,7 @@ object HapticEngine {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.VIBRATE)
     fun performSuccessPulse(context: Context) {
         val vibrator = getVibrator(context)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -39,6 +42,7 @@ object HapticEngine {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.VIBRATE)
     fun performHeavyImpact(context: Context) {
         val vibrator = getVibrator(context)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -50,6 +54,7 @@ object HapticEngine {
     }
 
     private fun getVibrator(context: Context): Vibrator? {
+
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
             vibratorManager.defaultVibrator

@@ -16,13 +16,19 @@ import androidx.compose.ui.unit.dp
 fun AddTransactionScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
     var amount by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
-    var isIncome by remember { mutableStateOf(false) }
+    var transactionType by remember { mutableIntStateOf(0) } // 0: Expense, 1: Income, 2: Transfer
     var selectedCategory by remember { mutableStateOf("Other") }
     var expanded by remember { mutableStateOf(false) }
 
     val categories by viewModel.categories.collectAsState()
+    val accounts by viewModel.accounts.collectAsState()
     val isSaving by viewModel.isSaving.collectAsState()
     val error by viewModel.error.collectAsState()
+
+    var fromAccount by remember { mutableStateOf(accounts.firstOrNull()?.id ?: "") }
+    var toAccount by remember { mutableStateOf(accounts.firstOrNull()?.id ?: "") }
+    var expandedFrom by remember { mutableStateOf(false) }
+    var expandedTo by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -46,18 +52,25 @@ fun AddTransactionScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
         ) {
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 SegmentedButton(
-                    selected = !isIncome,
-                    onClick = { isIncome = false },
-                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                    selected = transactionType == 0,
+                    onClick = { transactionType = 0 },
+                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
                 ) {
                     Text("Expense")
                 }
                 SegmentedButton(
-                    selected = isIncome,
-                    onClick = { isIncome = true },
-                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                    selected = transactionType == 1,
+                    onClick = { transactionType = 1 },
+                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
                 ) {
                     Text("Income")
+                }
+                SegmentedButton(
+                    selected = transactionType == 2,
+                    onClick = { transactionType = 2 },
+                    shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)
+                ) {
+                    Text("Transfer")
                 }
             }
 
@@ -76,31 +89,94 @@ fun AddTransactionScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = selectedCategory,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Category") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier.menuAnchor().fillMaxWidth()
-                )
-                ExposedDropdownMenu(
+            if (transactionType != 2) {
+                ExposedDropdownMenuBox(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onExpandedChange = { expanded = !expanded },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    categories.forEach { category ->
-                        DropdownMenuItem(
-                            text = { Text(category.name) },
-                            onClick = {
-                                selectedCategory = category.name
-                                expanded = false
-                            }
+                    OutlinedTextField(
+                        value = selectedCategory,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Category") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        categories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(category.name) },
+                                onClick = {
+                                    selectedCategory = category.name
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            } else {
+                // Transfer fields
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ExposedDropdownMenuBox(
+                        expanded = expandedFrom,
+                        onExpandedChange = { expandedFrom = !expandedFrom },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        OutlinedTextField(
+                            value = accounts.find { it.id == fromAccount }?.name ?: "Select",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("From") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedFrom) },
+                            modifier = Modifier.menuAnchor().fillMaxWidth()
                         )
+                        ExposedDropdownMenu(
+                            expanded = expandedFrom,
+                            onDismissRequest = { expandedFrom = false }
+                        ) {
+                            accounts.forEach { account ->
+                                DropdownMenuItem(
+                                    text = { Text(account.name) },
+                                    onClick = {
+                                        fromAccount = account.id
+                                        expandedFrom = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    ExposedDropdownMenuBox(
+                        expanded = expandedTo,
+                        onExpandedChange = { expandedTo = !expandedTo },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        OutlinedTextField(
+                            value = accounts.find { it.id == toAccount }?.name ?: "Select",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("To") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTo) },
+                            modifier = Modifier.menuAnchor().fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expandedTo,
+                            onDismissRequest = { expandedTo = false }
+                        ) {
+                            accounts.forEach { account ->
+                                DropdownMenuItem(
+                                    text = { Text(account.name) },
+                                    onClick = {
+                                        toAccount = account.id
+                                        expandedTo = false
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -110,14 +186,20 @@ fun AddTransactionScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
             }
 
             Button(
-                onClick = { viewModel.addTransaction(amount, note, selectedCategory, isIncome, onBack) },
+                onClick = { 
+                    if (transactionType == 2) {
+                        viewModel.addTransfer(amount, note, fromAccount, toAccount, onBack)
+                    } else {
+                        viewModel.addTransaction(amount, note, selectedCategory, transactionType == 1, onBack)
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isSaving
             ) {
                 if (isSaving) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Save Transaction")
+                    Text("Save")
                 }
             }
         }

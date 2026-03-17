@@ -3,6 +3,8 @@ package com.mrdarksidetm.wallet.ui
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -45,19 +47,13 @@ fun ReportsScreen(viewModel: WalletViewModel) {
 
     val incomeSweep by animateFloatAsState(
         targetValue = if (animationPlayed && total > 0) ((income / total) * 360f).toFloat() else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
+        animationSpec = tween(durationMillis = 1500, easing = FastOutSlowInEasing),
         label = "income_sweep"
     )
 
     val expenseSweep by animateFloatAsState(
         targetValue = if (animationPlayed && total > 0) ((expense / total) * 360f).toFloat() else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
+        animationSpec = tween(durationMillis = 1500, easing = FastOutSlowInEasing),
         label = "expense_sweep"
     )
 
@@ -80,11 +76,11 @@ fun ReportsScreen(viewModel: WalletViewModel) {
 
         item {
             Box(
-                modifier = Modifier.size(200.dp),
+                modifier = Modifier.size(240.dp).padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    val strokeWidth = 24.dp.toPx()
+                    val strokeWidth = 32.dp.toPx()
 
                     if (total > 0) {
                         drawArc(
@@ -92,7 +88,7 @@ fun ReportsScreen(viewModel: WalletViewModel) {
                             startAngle = -90f,
                             sweepAngle = incomeSweep,
                             useCenter = false,
-                            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                            style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
                         )
 
                         drawArc(
@@ -100,7 +96,7 @@ fun ReportsScreen(viewModel: WalletViewModel) {
                             startAngle = -90f + incomeSweep,
                             sweepAngle = expenseSweep,
                             useCenter = false,
-                            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                            style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
                         )
                     } else {
                         drawCircle(
