@@ -225,7 +225,7 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 | Loans (Lent/Borrowed/People)  | ✅      | ⬜      | Compose implementation finished|
 | Recurring Transactions        | ✅      | ✅      | WorkManager scaffolding added |
 | Search                        | ✅      | ✅      | M3 SearchBar implemented      |
-| Settings                      | ✅      | ⬜      | Compose Settings Page added   |
+| Settings                      | ✅      | ✅      | Stitch dark theme added       |
 | CSV Export                    | ✅      | ✅      | MediaStore utility added      |
 | People/Contacts               | ✅      | ⬜      | Compose People tab added      |
 
@@ -272,6 +272,10 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 ---
 
 ## 10. Debug History & Known Issues
+
+### 2026-03-18: Stitch UI Integration
+- **Feature:** Replaced Compose and Flutter Home/Settings screens with exact Dark Theme replicas from Stitch exports.
+- **Status:** Phase 3 (Dashboard) and Settings visually complete.
 
 ### 2026-03-17: Home UI & Navigation Updates
 - **Feature:** Updated Home screen Overview Grid to a dynamic 15-item menu including Budgets, Assets, Bill Splitter, Loans, Goals, Labels, Analytics, Recurring, Categories, Weekly, Places, Person, Calendar heatmap, Trend, and Recent transactions.
