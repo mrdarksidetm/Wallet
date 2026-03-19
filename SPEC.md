@@ -4,7 +4,7 @@
 # It is the single source of truth for feature parity between both versions.
 # When you update a feature, update THIS SPEC first, then implement in both codebases.
 #
-# Last synced: 2026-03-15
+# Last synced: 2026-03-19
 
 ## 1. App Identity
 
@@ -15,7 +15,7 @@
 | Package (iOS)  | `com.mrdarksidetm.wallet`              |
 | Min Android    | API 29 (Android 10)                     |
 | Target Android | API 34 (Android 14)                     |
-| Design System  | Google Material 3 Expressive            |
+| Design System  | Google Material 3 (Stitch UI)           |
 | Iconography    | Adaptive Icons (Android)                |
 | Architecture   | MVVM + Unidirectional Data Flow         |
 | Network        | **Offline-first. Zero network calls.**  |
@@ -88,17 +88,20 @@
 ### 3.1 Dashboard (Home)
 
 - **Route:** `/home`
+- **Design:** Stitch Dark-First (Dynamic)
 - **Total Balance Card:**
   - Large balance display with currency formatting
   - Eye icon toggle to hide/show balance
-  - "This month" breakdown: Income (green) / Expense (red) with percentage indicators
-- **Overview Grid:** 2-column `LazyVerticalGrid` / `GridView`
+  - "This month" breakdown: Income (green) / Expense (red)
+- **Overview Grid:** 2x2 Grid
   - Cards: Budgets, Assets, Bill Splitter, Loans
-  - Each card shows summary value + icon
 - **Top App Bar:**
-  - Left: Profile avatar (clickable to `/profile`)
-  - Center: Greeting text ("Good evening, [User]")
-  - Right: (Premium badge removed)
+  - Left: Wallet Icon + Greeting text ("Good late night")
+  - Right: User profile avatar (clickable to `/settings`)
+- **Bottom Navigation Bar:**
+  - Floating pill-shaped design (Rounded)
+  - Items: Home, Accounts, Reports, Settings
+  - **Contextual FAB:** Center-mounted, changes icon/action based on current screen (Add Transaction for Home, Add Account for Accounts).
 
 ### 3.2 Accounts / Ledger
 
@@ -134,12 +137,10 @@
 ### 3.5 Settings
 
 - **Route:** `/settings`
-- Personalization (Themes, Color)
-- Preferences (Layouts, Formats)
-- Data & Backup (CSV Export, Google Drive)
-- Security & Notifications
-- Community & Support
-- About Paisa
+- **Design:** Stitch Refined List
+- **Profile Section:** Large avatar with edit button, name, and email.
+- **Categories:** General (Accounts, Categories, Currencies), Security & Privacy (Biometrics, Privacy Policy).
+- **Logout:** Outlined "Sign Out" button.
 
 ### 3.6 Profile / Manage Accounts
 
@@ -272,6 +273,19 @@ Dynamic M3 color is preferred. Hardcode premium defaults as fallback.
 ---
 
 ## 10. Debug History & Known Issues
+
+### 2026-03-19: Architecture Refactor & Stitch UI Sync
+- **Feature:** Completely replaced old UI screens with Stitch-inspired dynamic components.
+- **Navigation:** Implemented a unified root `Scaffold` in both Compose and Flutter to prevent navigation bar overlaps.
+- **UI:** Added a floating center-mounted contextual FAB that adapts its icon and action based on the active tab.
+- **Theming:** Extracted tokens from Stitch exports and implemented a full light/dark mode system using semantic Material 3 colors.
+- **Status:** Phase 3 (Dashboard) and Phase 5 (Settings) fully integrated and logically wired to existing ViewModels and Providers.
+
+### 2026-03-18: Dependency & Navigation Fixes
+- **Feature:** Added Coil 2.7.0 dependency to `libs.versions.toml` and `app/build.gradle.kts`.
+- **UI:** Fixed missing `clickable` import and resolved `MainAppScreen.kt` navigation conflicts between local and external `HomeScreen` definitions.
+- **Navigation:** Updated `NavHost` to pass correct parameters to `HomeScreen`, `AccountsScreen`, `ReportsScreen`, and `SettingsScreen`.
+- **Status:** Compilation successful. Verified with `./gradlew :app:compileDebugKotlin`.
 
 ### 2026-03-18: Stitch UI Integration
 - **Feature:** Replaced Compose and Flutter Home/Settings screens with exact Dark Theme replicas from Stitch exports.

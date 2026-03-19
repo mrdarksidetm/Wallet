@@ -3,8 +3,9 @@ package com.mrdarksidetm.wallet.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import android.content.Context
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import android.content.Context
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
@@ -66,68 +67,22 @@ fun MainAppScreen() {
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.AccountBalanceWallet, 
-                            contentDescription = "App Logo", 
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(end = 8.dp).size(28.dp)
-                        )
-                        Column {
-                            Text(
-                                text = "Good evening",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                text = userName,
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                        }
-                    }
-                },
-                actions = {
-                    Icon(
-                        Icons.Rounded.Star, 
-                        contentDescription = "Premium", 
-                        tint = Color(0xFFFFD700), 
-                        modifier = Modifier.padding(end = 12.dp).size(28.dp)
-                    )
-                    IconButton(onClick = { navController.navigate("profile") }) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primaryContainer),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = userName.take(1).uppercase(),
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                )
-            )
-        },
         bottomBar = {
             NavigationBar(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(24.dp)),
-                tonalElevation = 8.dp
+                    .padding(horizontal = 16.dp, vertical = 24.dp)
+                    .clip(RoundedCornerShape(32.dp)),
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                tonalElevation = 0.dp
             ) {
-                items.forEachIndexed { index, item ->
+                val navItems = listOf("home", "accounts", "reports", "search")
+                val navIcons = listOf(Icons.Default.Home, Icons.Default.AccountBalanceWallet, Icons.Default.PieChart, Icons.Default.Search)
+                val navLabels = listOf("Home", "Accounts", "Reports", "Search")
+
+                navItems.forEachIndexed { index, item ->
                     NavigationBarItem(
-                        icon = { Icon(icons[index], contentDescription = itemLabels[index]) },
-                        label = { Text(itemLabels[index]) },
+                        icon = { Icon(navIcons[index], contentDescription = navLabels[index]) },
+                        label = { Text(navLabels[index], style = MaterialTheme.typography.labelSmall) },
                         selected = selectedItem == index,
                         onClick = { 
                             selectedItem = index 
@@ -138,11 +93,17 @@ fun MainAppScreen() {
                                 launchSingleTop = true
                                 restoreState = true
                             }
-                        }
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            indicatorColor = Color.Transparent
+                        )
                     )
                 }
             }
         },
+        floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             if (selectedItem == 0 || selectedItem == 1) {
                 FloatingActionButton(
@@ -150,37 +111,44 @@ fun MainAppScreen() {
                         viewModel.clearError()
                         if (selectedItem == 0) navController.navigate("add_transaction")
                         else navController.navigate("add_account")
-                    }
-                ) { 
+                    },
+                    shape = RoundedCornerShape(20.dp),
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = Color.White,
+                    elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 8.dp)
+                ) {
                     Icon(
-                        if (selectedItem == 0) Icons.Default.Add else Icons.Default.AccountBalanceWallet, 
+                        if (selectedItem == 0) Icons.Default.Add else Icons.Default.AccountBalanceWallet,
                         contentDescription = "Add"
-                    ) 
+                    )
                 }
             }
         }
     ) { innerPadding ->
+        val scope = rememberCoroutineScope()
         Surface(modifier = Modifier.padding(innerPadding)) {
             NavHost(navController = navController, startDestination = "home") {
                 composable("home") { 
-                    val scope = rememberCoroutineScope()
                     HomeScreen(
                         viewModel = viewModel,
-                        onLoansClick = { navController.navigate("loans") },
-                        onPlaceholderClick = { feature ->
-                            scope.launch {
-                                snackbarHostState.showSnackbar("$feature: Feature coming soon")
-                            }
-                        }
+                        onNavigateToSettings = { navController.navigate("settings") },
+                        onNavigateToSubMenu = { title -> navController.navigate("home_submenu/$title") },
+                        onLoansClick = { navController.navigate("loans") }
                     ) 
                 }
-                composable("accounts") { AccountsScreen(viewModel, snackbarHostState) }
-                composable("reports") { ReportsScreen(viewModel) }
-                composable(
-                    "search",
-                    enterTransition = { slideInVertically(initialOffsetY = { it }) },
-                    exitTransition = { slideOutVertically(targetOffsetY = { it }) }
-                ) { SearchScreen() }
+                composable("accounts") {
+                    AccountsScreen(viewModel = viewModel, snackbarHostState = snackbarHostState)
+                }
+                composable("reports") {
+                    ReportsScreen(viewModel = viewModel)
+                }
+                composable("search") {
+                    SearchScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+                }
+                composable("home_submenu/{title}") { backStackEntry ->
+                    val title = backStackEntry.arguments?.getString("title") ?: "Menu"
+                    HomeSubMenuScreen(title = title, onBack = { navController.popBackStack() })
+                }
                 composable("add_transaction") { 
                     AddTransactionScreen(viewModel = viewModel, onBack = { navController.popBackStack() }) 
                 }
@@ -191,7 +159,7 @@ fun MainAppScreen() {
                     ProfileScreen(viewModel, onBack = { navController.popBackStack() }, onSettingsClick = { navController.navigate("settings") })
                 }
                 composable("settings") {
-                    SettingsScreen(onBack = { navController.popBackStack() })
+                    SettingsScreen(viewModel = viewModel, onNavigateBack = { navController.popBackStack() })
                 }
                 composable("loans") {
                     LoanScreen(viewModel, onBack = { navController.popBackStack() })
@@ -202,101 +170,32 @@ fun MainAppScreen() {
 }
 
 @Composable
-fun HomeScreen(viewModel: WalletViewModel, onLoansClick: () -> Unit, onPlaceholderClick: (String) -> Unit) {
-    val totalBalance by viewModel.totalBalance.collectAsState()
-    val thisMonthIncome by viewModel.thisMonthIncome.collectAsState()
-    val thisMonthExpense by viewModel.thisMonthExpense.collectAsState()
-    val recentTransactions by viewModel.recentTransactions.collectAsState()
-
-    androidx.compose.foundation.lazy.LazyColumn(modifier = Modifier.fillMaxSize()) {
-        item {
-            TotalBalanceCard(
-                balance = totalBalance,
-                income = thisMonthIncome,
-                expense = thisMonthExpense
-            )
-        }
-        
-        item {
-            Text(
-                text = "Overview",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-        }
-        
-        item {
-            val menuItems = listOf(
-                "Budgets" to Icons.Default.PieChart,
-                "Assets" to Icons.Default.AccountBalanceWallet,
-                "Bill Splitter" to Icons.Default.Receipt,
-                "Loans" to Icons.Default.CreditCard,
-                "Goals" to Icons.Rounded.Star,
-                "Labels*" to Icons.Default.List,
-                "Analytics*" to Icons.Default.PieChart,
-                "Recurring" to Icons.Default.List,
-                "Categories*" to Icons.Default.List,
-                "Weekly*" to Icons.Default.List,
-                "Places*" to Icons.Default.List,
-                "Person*" to Icons.Default.List,
-                "Calendar heatmap" to Icons.Default.List,
-                "Trend" to Icons.Default.List,
-                "Recent txns*" to Icons.Default.List
-            )
-
-            Column(modifier = Modifier.padding(16.dp)) {
-                val chunkedItems = menuItems.chunked(2)
-                chunkedItems.forEachIndexed { index, rowItems ->
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        for (menuItem in rowItems) {
-                            OverviewCard(
-                                title = menuItem.first,
-                                icon = menuItem.second,
-                                mainCount = if (menuItem.first == "Loans" || menuItem.first == "Assets" || menuItem.first == "Budgets") "1" else "0",
-                                mainLabel = menuItem.first.replace("*", ""),
-                                bottomValue = "-",
-                                progress = null,
-                                onClick = { if (menuItem.first == "Loans") onLoansClick() else onPlaceholderClick(menuItem.first) },
-                                modifier = Modifier.weight(1f).height(120.dp)
-                            )
-                        }
-                        if (rowItems.size == 1) {
-                            Spacer(modifier = Modifier.weight(1f))
-                        }
-                    }
-                    if (index < chunkedItems.size - 1) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-                }
+fun HomeSubMenuScreen(title: String, onBack: () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "Sub-menu content for $title", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(onClick = onBack) {
+                Text("Go Back")
             }
-        }
-
-        item {
-            Text(
-                text = "Recent Transactions",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-        }
-
-        items(recentTransactions.take(10)) { transaction ->
-            TransactionItem(transaction = transaction, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
-        }
-        
-        item {
-            Spacer(modifier = Modifier.height(80.dp)) // padding for bottom bar
         }
     }
 }
 
 @Composable
-fun SearchScreen() {
+fun SearchScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
             Spacer(modifier = Modifier.height(16.dp))
             Text("Search Transactions", style = MaterialTheme.typography.titleLarge)
             Text("Feature coming soon", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(onClick = onBack) {
+                Text("Go Back")
+            }
         }
     }
 }

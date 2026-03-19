@@ -2,6 +2,7 @@ package com.mrdarksidetm.wallet.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,20 +12,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.mrdarksidetm.wallet.data.TransactionEntity
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -32,259 +30,336 @@ import java.util.Locale
 @Composable
 fun HomeScreen(
     viewModel: WalletViewModel,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onNavigateToSubMenu: (String) -> Unit,
+    onLoansClick: () -> Unit = {}
 ) {
     val totalBalance by viewModel.totalBalance.collectAsState()
     val income by viewModel.thisMonthIncome.collectAsState()
     val expense by viewModel.thisMonthExpense.collectAsState()
-    val recentTransactions by viewModel.recentTransactions.collectAsState()
+    val transactions by viewModel.recentTransactions.collectAsState()
     val userName by viewModel.userName.collectAsState()
+    val userPhoto by viewModel.userPhotoPath.collectAsState()
 
-    val primaryColor = Color(0xFFD2691E)
-    val bgColor = Color(0xFF1A140F)
-    val cardColor = Color(0xFF251C15)
-    val onBgColor = Color.White
-    val textMuted = Color(0xFF94A3B8)
-    val incomeColor = Color(0xFF10B981)
-
+    var isBalanceVisible by remember { mutableStateOf(true) }
     val formatter = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    Scaffold(
-        containerColor = bgColor,
-        bottomBar = {
-            // Simplified custom bottom bar to mimic the HTML design
-            Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        // Header
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(80.dp)
-                        .clip(RoundedCornerShape(40.dp))
-                        .background(cardColor.copy(alpha = 0.9f))
-                        .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(40.dp))
-                        .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    BottomNavItem(Icons.Filled.Home, "Home", primaryColor, true)
-                    BottomNavItem(Icons.Outlined.CreditCard, "Accounts", textMuted, false)
-                    Spacer(modifier = Modifier.width(64.dp))
-                    BottomNavItem(Icons.Outlined.SyncAlt, "Reports", textMuted, false)
-                    BottomNavItem(Icons.Outlined.Search, "Search", textMuted, false)
-                }
-
-                // FAB
-                FloatingActionButton(
-                    onClick = { },
-                    containerColor = Color(0xFFEF8E52),
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .offset(y = (-24).dp)
-                        .size(80.dp),
-                    shape = RoundedCornerShape(32.dp),
-                    elevation = FloatingActionButtonDefaults.elevation(8.dp)
-                ) {
-                    Icon(Icons.Filled.Add, contentDescription = "Add", tint = Color.White, modifier = Modifier.size(36.dp))
-                }
-            }
-        }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                // Top Nav
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(primaryColor.copy(alpha = 0.2f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Filled.AccountBalanceWallet, contentDescription = null, tint = primaryColor)
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text("Good late night", color = textMuted, fontSize = 11.sp, fontWeight = FontWeight.Medium)
-                            Text(userName, color = onBgColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                    IconButton(onClick = onNavigateToSettings) {
-                        AsyncImage(
-                            model = "https://lh3.googleusercontent.com/aida-public/AB6AXuD7auInrMqEu8-euE8_znCfyyqzmldE0a2Vywhqt3tzIkfLyC8K5NRXSijyhLi44Zl5tb8Az3zEvn05FhzLpSopIhtpE8ZkTY9ANyTzrv_q92Vi1-fKfFw68LO0TamaKRNq3u-52WCMqdcnpb52WQx93w5YaTvm9_nc7UHAZixdu3fxfF386i5oOmtGXOU5DFsUmWDtUYZ_hKR4-P0TgUrUbXD0060xq66pJ3xOm6KdtUrIfsYFnsW40usrCD0RU5A66CXQ5lKDYTg",
-                            contentDescription = "Profile",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(CircleShape)
-                                .border(2.dp, primaryColor.copy(alpha = 0.2f), CircleShape)
-                        )
-                    }
-                }
-            }
-
-            item {
-                // Total Balance Card
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(32.dp))
-                        .background(cardColor)
-                        .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(32.dp))
-                        .padding(32.dp)
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Box(
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(x = 40.dp, y = (-40).dp)
-                            .size(160.dp)
-                            .background(primaryColor.copy(alpha = 0.1f), CircleShape)
-                            .blur(40.dp)
-                    )
-                    
-                    Column {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Total balance", color = primaryColor.copy(alpha = 0.8f), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                            Icon(Icons.Outlined.VisibilityOff, contentDescription = null, tint = textMuted)
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(formatter.format(totalBalance), color = onBgColor, fontSize = 36.sp, fontWeight = FontWeight.ExtraBold)
-                        Spacer(modifier = Modifier.height(32.dp))
-                        
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Column {
-                                Text("INCOME", color = textMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                                Text(formatter.format(income), color = incomeColor, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text("EXPENSE", color = textMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                                Text(formatter.format(expense), color = primaryColor, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-                }
-            }
-
-            item {
-                // Overview
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Overview", color = onBgColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Icon(Icons.Outlined.GridView, contentDescription = null, tint = textMuted)
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                // Grid representation
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OverviewItem(Icons.Outlined.PieChart, "Budgets", "0 Budgets", primaryColor, cardColor, Modifier.weight(1f))
-                        OverviewItem(Icons.Filled.AccountBalance, "Assets", "₹0.00", primaryColor, cardColor, Modifier.weight(1f))
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OverviewItem(Icons.Outlined.Group, "Bill Splitter", "0 Bills Active", primaryColor, cardColor, Modifier.weight(1f))
-                        OverviewItem(Icons.Outlined.CurrencyExchange, "Loans", "₹1.95K Balance", primaryColor, cardColor, Modifier.weight(1f))
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OverviewItem(Icons.Outlined.Analytics, "Analytics", "₹0.00 this month", primaryColor, cardColor, Modifier.weight(1f))
-                        OverviewItem(Icons.Outlined.EventRepeat, "Recurring", "0 Active", primaryColor, cardColor, Modifier.weight(1f))
-                    }
-                }
-            }
-
-            item {
-                // Recent Activity Header
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Recent Activity", color = onBgColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    TextButton(
-                        onClick = { },
-                        colors = ButtonDefaults.textButtonColors(containerColor = primaryColor.copy(alpha = 0.1f), contentColor = primaryColor),
-                        shape = RoundedCornerShape(20.dp)
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text("See All", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Icon(
+                            Icons.Default.AccountBalanceWallet,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
-                }
-            }
-
-            items(recentTransactions.take(3)) { tx ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(cardColor)
-                        .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(16.dp))
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFF1E293B)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(if (tx.type == "Income") Icons.Outlined.ArrowDownward else Icons.Outlined.ArrowUpward, contentDescription = null, tint = Color(0xFFCBD5E1))
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(tx.category, color = onBgColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text(tx.note.ifBlank { "Transaction" }, color = textMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
+                    Column {
                         Text(
-                            text = (if (tx.type == "Income") "+" else "-") + formatter.format(tx.amount),
-                            color = if (tx.type == "Income") incomeColor else primaryColor,
-                            fontSize = 14.sp,
+                            text = "Good late night",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = userName,
+                            style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
-            }
+                
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // Premium Banner
+                    Card(
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                        modifier = Modifier.clickable { onNavigateToSubMenu("Premium") }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(Icons.Default.Star, contentDescription = "Premium", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                            Text("PRO", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        }
+                    }
 
-            item { Spacer(modifier = Modifier.height(100.dp)) }
+                    // UserShape
+                    IconButton(onClick = onNavigateToSettings, modifier = Modifier.size(44.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape)
+                                .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), CircleShape)
+                        ) {
+                            if (userPhoto != null) {
+                                AsyncImage(
+                                    model = userPhoto,
+                                    contentDescription = "Profile",
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primaryContainer),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(userName.take(1), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Total Balance Card
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(32.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Total balance",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        IconButton(onClick = { isBalanceVisible = !isBalanceVisible }) {
+                            Icon(
+                                if (isBalanceVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                    
+                    Text(
+                        text = if (isBalanceVisible) formatter.format(totalBalance) else "••••••",
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        BalanceSummaryItem("Income", income, Color(0xFF10B981))
+                        BalanceSummaryItem("Expense", expense, Color(0xFFEF4444))
+                    }
+                }
+            }
+        }
+
+        // Overview Grid
+        item {
+            val gridItems = listOf(
+                Pair("Budgets", Icons.Default.PieChart) to "₹0.00 left",
+                Pair("Assets", Icons.Default.AccountBalance) to "₹0.00 total",
+                Pair("Bill Splitter", Icons.Default.Share) to "0 active",
+                Pair("Loans", Icons.Default.CurrencyExchange) to "₹0.00 due",
+                Pair("Goals", Icons.Default.Star) to "0 active",
+                Pair("Labels", Icons.Default.Info) to "0 tags",
+                Pair("Analytics", Icons.Default.Timeline) to "View charts",
+                Pair("Recurring", Icons.Default.Refresh) to "0 active",
+                Pair("Categories", Icons.Default.List) to "12 items",
+                Pair("Weekly", Icons.Default.DateRange) to "This week",
+                Pair("Places", Icons.Default.LocationOn) to "0 locations",
+                Pair("Person", Icons.Default.Person) to "0 people",
+                Pair("Calendar heatmap", Icons.Default.DateRange) to "Activity",
+                Pair("Trend", Icons.Default.TrendingUp) to "Growth",
+                Pair("Recent transactions", Icons.Default.List) to "History"
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                gridItems.chunked(2).forEach { rowItems ->
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        rowItems.forEach { (meta, subtitle) ->
+                            val (title, icon) = meta
+                            val onClickAction: () -> Unit = if (title == "Loans") onLoansClick else { { onNavigateToSubMenu(title) } }
+                            OverviewGridItem(Modifier.weight(1f), icon, title, subtitle, onClickAction)
+                        }
+                        if (rowItems.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+        }
+
+        // Transactions Header
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Recent Transactions",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                TextButton(onClick = { onNavigateToSubMenu("Recent transactions") }) {
+                    Text("View all")
+                    Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(16.dp))
+                }
+            }
+        }
+
+        // Transaction List
+        if (transactions.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No transactions yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        } else {
+            items(transactions.take(5)) { transaction ->
+                TransactionListItem(transaction)
+            }
+        }
+        
+        item { Spacer(modifier = Modifier.height(100.dp)) }
+    }
+}
+
+@Composable
+fun BalanceSummaryItem(label: String, amount: Double, color: Color) {
+    val formatter = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    Column {
+        Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(text = formatter.format(amount), style = MaterialTheme.typography.titleMedium, color = color, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+fun OverviewGridItem(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: (String) -> Unit
+) {
+    Card(
+        modifier = modifier.clickable { onClick(title) },
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(text = title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+            Text(text = subtitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
 @Composable
-fun BottomNavItem(icon: ImageVector, label: String, color: Color, isSelected: Boolean) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(icon, contentDescription = label, tint = color, modifier = Modifier.size(24.dp))
-        Text(label, color = color, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+fun OverviewGridItem(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = modifier.clickable { onClick() },
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(text = title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+            Text(text = subtitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 
 @Composable
-fun OverviewItem(icon: ImageVector, title: String, subtitle: String, primaryColor: Color, cardColor: Color, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(cardColor)
-            .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(16.dp))
-            .clickable { }
-            .padding(20.dp)
+fun TransactionListItem(transaction: TransactionEntity) {
+    val formatter = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(44.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(primaryColor.copy(alpha = 0.15f)),
+                .background(MaterialTheme.colorScheme.surface),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = primaryColor)
+            Icon(
+                if (transaction.type == "Income") Icons.Default.TrendingUp else Icons.Default.ShoppingBag,
+                contentDescription = null,
+                tint = if (transaction.type == "Income") Color(0xFF10B981) else Color(0xFFEF4444)
+            )
         }
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-        Text(subtitle, color = Color(0xFF94A3B8), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = transaction.note.ifBlank { transaction.category }, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+            Text(text = transaction.category, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Text(
+            text = "${if (transaction.type == "Income") "+" else "-"}${formatter.format(transaction.amount)}",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = if (transaction.type == "Income") Color(0xFF10B981) else Color(0xFFEF4444)
+        )
     }
 }

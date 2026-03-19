@@ -1,6 +1,5 @@
 package com.mrdarksidetm.wallet.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,19 +12,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,130 +32,121 @@ fun SettingsScreen(
     val userName by viewModel.userName.collectAsState()
     val userPhoto by viewModel.userPhotoPath.collectAsState()
 
-    val primaryColor = Color(0xFFD2691E)
-    val bgColor = Color(0xFF211811)
-    val cardColor = Color(0xFF211811)
-    val onBgColor = Color.White
-    val onBgSecondary = Color(0xFF94A3B8)
-
-    Scaffold(
-        containerColor = bgColor,
-        topBar = {
-            TopAppBar(
-                title = { Text("Settings", color = onBgColor, fontSize = 20.sp, fontWeight = FontWeight.SemiBold) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = onBgColor)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = bgColor.copy(alpha = 0.8f))
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState())
+    ) {
+        // Header
+        CenterAlignedTopAppBar(
+            title = { Text("Settings", fontWeight = FontWeight.Bold) },
+            navigationIcon = {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                }
+            },
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                containerColor = Color.Transparent
             )
-        }
-    ) { paddingValues ->
-        Column(
+        )
+
+        // Profile Section
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
+                .fillMaxWidth()
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
         ) {
-            // Profile Section
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(modifier = Modifier.size(80.dp)) {
-                    Image(
-                        painter = rememberAsyncImagePainter(model = userPhoto ?: "https://lh3.googleusercontent.com/aida-public/AB6AXuD0m0ChODA7kWlR5YBZxtWxLJksb_Q08ItwWYOyO6WF-z-mijz-8eVMaeMKE5I_57rJ9UzM0qqgbnp_67NILkeS2kOzxSV26IPrhYXua-sF-ZBnZZasWuHyksQAZPoc5yg-qt3zxyLMzEGXQAcnZfjucvhKDFaRrrX4sqRT45Wv48oTs6SQ4hcgLVlQNJOLD4vf4FSa8usb4RZwv3m5vu-tkp5P02WhKJDUIcDUBnVz8cl3JVYZDW6nrcb_5_Q0CGZz3Xyi6bVarG0"),
-                        contentDescription = "Profile Picture",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape)
-                            .border(2.dp, primaryColor, CircleShape)
-                    )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .border(4.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), CircleShape)
+                ) {
+                    if (userPhoto != null) {
+                        AsyncImage(
+                            model = userPhoto,
+                            contentDescription = "Profile",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(userName.take(1), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    
                     IconButton(
-                        onClick = { /* Edit profile */ },
+                        onClick = { /* Edit photo */ },
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .size(24.dp)
+                            .size(32.dp)
                             .clip(CircleShape)
-                            .background(primaryColor)
+                            .background(MaterialTheme.colorScheme.primary)
                     ) {
-                        Icon(Icons.Filled.Edit, contentDescription = "Edit", tint = Color.White, modifier = Modifier.size(14.dp))
+                        Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                     }
                 }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text(text = userName, color = onBgColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text(text = "abhijeet.yadav@example.com", color = onBgSecondary, fontSize = 14.sp)
-                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = userName, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
+                Text(text = "abhijeet.yadav@example.com", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-
-            Divider(color = primaryColor.copy(alpha = 0.2f))
-
-            // General
-            SettingsSectionTitle("General", primaryColor)
-            SettingsItem(icon = Icons.Outlined.Palette, title = "App theme", subtitle = "System default", primaryColor = primaryColor)
-            SettingsItem(icon = Icons.Outlined.Payments, title = "Currency", subtitle = "INR (₹)", primaryColor = primaryColor)
-            SettingsItem(icon = Icons.Outlined.Language, title = "Language", subtitle = "English (US)", primaryColor = primaryColor)
-
-            // Data
-            SettingsSectionTitle("Data", primaryColor)
-            SettingsItem(icon = Icons.Outlined.CloudUpload, title = "Backup & Restore", subtitle = "Last backup: 2 hours ago", primaryColor = primaryColor)
-            SettingsItem(icon = Icons.Filled.ExitToApp, title = "Export Data", subtitle = "CSV, PDF, JSON", primaryColor = primaryColor)
-
-            // Security
-            SettingsSectionTitle("Security", primaryColor)
-            SettingsSwitchItem(icon = Icons.Outlined.Lock, title = "App Lock", subtitle = "Secure your financial data", checked = true, onCheckedChange = {}, primaryColor = primaryColor)
-            SettingsSwitchItem(icon = Icons.Outlined.Fingerprint, title = "Biometric login", subtitle = "Use Fingerprint or Face ID", checked = false, onCheckedChange = {}, primaryColor = primaryColor)
-
-            // About
-            SettingsSectionTitle("About", primaryColor)
-            SettingsItem(icon = Icons.Outlined.Info, title = "App version", subtitle = "v2.4.0 (Stable)", showChevron = false, primaryColor = primaryColor)
-            SettingsItem(icon = Icons.Outlined.Policy, title = "Privacy policy", showChevron = true, chevronIcon = Icons.Outlined.OpenInNew, primaryColor = primaryColor)
-
-            // Logout
-            Spacer(modifier = Modifier.height(32.dp))
-            OutlinedButton(
-                onClick = { /* Sign out */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                border = androidx.compose.foundation.BorderStroke(2.dp, primaryColor.copy(alpha = 0.2f)),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = primaryColor)
-            ) {
-                Icon(Icons.Outlined.ExitToApp, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Sign Out", fontWeight = FontWeight.Bold)
-            }
-
-            Text(
-                text = "MADE WITH ❤️ FOR PAISA",
-                color = onBgSecondary,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Medium,
-                letterSpacing = 2.sp,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(vertical = 24.dp)
-            )
         }
+
+        // Settings Categories
+        SettingsSectionTitle("General")
+        SettingsItem(Icons.Default.AccountBalanceWallet, "Accounts", "Manage your wallets")
+        SettingsItem(Icons.Default.Category, "Categories", "Manage spending categories")
+        SettingsItem(Icons.Default.CurrencyExchange, "Currencies", "Change primary currency")
+
+        SettingsSectionTitle("Security & Privacy")
+        SettingsItem(Icons.Default.Fingerprint, "Biometrics", "Secure with fingerprint")
+        SettingsItem(Icons.Default.Policy, "Privacy Policy", "Learn how we handle data", showChevron = false, trailingIcon = Icons.Default.OpenInNew)
+
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        // Logout Button
+        OutlinedButton(
+            onClick = { /* Sign out */ },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .height(56.dp),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+        ) {
+            Icon(Icons.Default.Logout, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Sign Out", fontWeight = FontWeight.Bold)
+        }
+        
+        Text(
+            text = "Made with ❤️ for Paisa",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(vertical = 32.dp),
+            letterSpacing = 2.sp
+        )
     }
 }
 
 @Composable
-fun SettingsSectionTitle(title: String, primaryColor: Color) {
+fun SettingsSectionTitle(title: String) {
     Text(
         text = title.uppercase(),
-        color = primaryColor,
-        fontSize = 12.sp,
+        color = MaterialTheme.colorScheme.primary,
+        style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.Bold,
-        letterSpacing = 1.sp,
-        modifier = Modifier.padding(start = 24.dp, top = 24.dp, bottom = 8.dp)
+        modifier = Modifier.padding(start = 24.dp, top = 24.dp, bottom = 8.dp),
+        letterSpacing = 1.sp
     )
 }
 
@@ -167,73 +154,35 @@ fun SettingsSectionTitle(title: String, primaryColor: Color) {
 fun SettingsItem(
     icon: ImageVector,
     title: String,
-    subtitle: String? = null,
+    subtitle: String,
     showChevron: Boolean = true,
-    chevronIcon: ImageVector = Icons.Filled.KeyboardArrowRight,
-    primaryColor: Color
+    trailingIcon: ImageVector? = null
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { }
-            .padding(horizontal = 24.dp, vertical = 12.dp),
+            .clickable { /* Action */ }
+            .padding(horizontal = 24.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(primaryColor.copy(alpha = 0.2f)),
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = primaryColor)
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
         }
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, color = Color.White, fontWeight = FontWeight.Medium, fontSize = 16.sp)
-            if (subtitle != null) {
-                Text(text = subtitle, color = Color(0xFF94A3B8), fontSize = 14.sp)
-            }
+            Text(text = title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (showChevron) {
-            Icon(chevronIcon, contentDescription = null, tint = Color(0xFF94A3B8))
+            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+        } else if (trailingIcon != null) {
+            Icon(trailingIcon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
         }
-    }
-}
-
-@Composable
-fun SettingsSwitchItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    primaryColor: Color
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(primaryColor.copy(alpha = 0.2f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = null, tint = primaryColor)
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, color = Color.White, fontWeight = FontWeight.Medium, fontSize = 16.sp)
-            Text(text = subtitle, color = Color(0xFF94A3B8), fontSize = 14.sp)
-        }
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = primaryColor)
-        )
     }
 }
