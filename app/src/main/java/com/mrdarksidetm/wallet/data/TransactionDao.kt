@@ -30,4 +30,9 @@ interface TransactionDao {
 
     @Query("SELECT * FROM transactions ORDER BY date DESC")
     fun getAllTransactions(): Flow<List<TransactionEntity>>
+    @Query("UPDATE transactions SET isArchived = 1 WHERE id = :transactionId")
+    suspend fun archiveTransaction(transactionId: String)
+
+    @Query("SELECT * FROM transactions WHERE isArchived = 0 ORDER BY date DESC")
+    fun getActiveTransactions(): Flow<List<TransactionEntity>>
 }

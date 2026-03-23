@@ -4,33 +4,16 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.mrdarksidetm.wallet.data.AccountDao
-import com.mrdarksidetm.wallet.data.AccountEntity
-import com.mrdarksidetm.wallet.data.CategoryDao
-import com.mrdarksidetm.wallet.data.CategoryEntity
-import com.mrdarksidetm.wallet.data.TransactionDao
-import com.mrdarksidetm.wallet.data.TransactionEntity
-import com.mrdarksidetm.wallet.data.PersonDao
-import com.mrdarksidetm.wallet.data.PersonEntity
-import com.mrdarksidetm.wallet.data.LoanDao
-import com.mrdarksidetm.wallet.data.LoanEntity
+import com.mrdarksidetm.wallet.data.*
 import android.content.Context
 import android.content.SharedPreferences
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
  * Law 1: Meaningful Names - CategorySpending clearly defines its purpose.
- * Law 2: Single Responsibility - This class solely represents the UI state for category breakdown.
- * Compose Optimization: @Immutable ensures the compiler skips recomposition when the list instance is unchanged.
  */
 @Immutable
 data class CategorySpending(
@@ -45,10 +28,13 @@ class WalletViewModel(
     private val categoryDao: CategoryDao,
     private val personDao: PersonDao,
     private val loanDao: LoanDao,
+    private val budgetDao: BudgetDao,
+    private val goalDao: GoalDao,
+    private val recurringDao: RecurringTransactionDao,
+    private val labelDao: LabelDao,
     private val sharedPreferences: SharedPreferences
 ) : ViewModel() {
 
-    // The default account UUID for offline-first local testing
     private val defaultAccountId = "default_cash"
 
     private val _error = MutableStateFlow<String?>(null)
@@ -57,8 +43,7 @@ class WalletViewModel(
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
-    // User Profile
-    private val _userName = MutableStateFlow(sharedPreferences.getString("user_name", "User") ?: "User")
+    private val _userName = MutableStateFlow(sharedPreferences.getString("user_name", "User") ?: "User")        
     val userName: StateFlow<String> = _userName.asStateFlow()
 
     private val _userPhotoPath = MutableStateFlow(sharedPreferences.getString("user_photo", null))
@@ -74,17 +59,25 @@ class WalletViewModel(
         sharedPreferences.edit().putString("user_photo", path).apply()
     }
 
-    /**
-     * Law 3: Clean Flow - Reactive streams map database state directly to UI state
-     * seamlessly without blocking the main thread.
-     */
     val accounts: StateFlow<List<AccountEntity>> = accountDao.getAllAccounts()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val categories: StateFlow<List<CategoryEntity>> = categoryDao.getAllCategories()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val recentTransactions: StateFlow<List<TransactionEntity>> = transactionDao.getAllTransactions()
+    val recentTransactions: StateFlow<List<TransactionEntity>> = transactionDao.getActiveTransactions()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val budgets: StateFlow<List<BudgetEntity>> = budgetDao.getAllActiveBudgets()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val goals: StateFlow<List<GoalEntity>> = goalDao.getAllGoals()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val recurringTransactions: StateFlow<List<RecurringTransactionEntity>> = recurringDao.getAllActiveRecurring()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val labels: StateFlow<List<LabelEntity>> = labelDao.getAllLabels()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val persons: StateFlow<List<PersonEntity>> = personDao.getAllPersons()
@@ -92,6 +85,14 @@ class WalletViewModel(
 
     val loans: StateFlow<List<LoanEntity>> = loanDao.getAllLoans()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun archiveTransaction(transactionId: String) {
+        viewModelScope.launch(Dispatchers.IO) { transactionDao.archiveTransaction(transactionId) }
+    }
+
+    fun deleteTransaction(transaction: TransactionEntity) {
+        viewModelScope.launch(Dispatchers.IO) { transactionDao.deleteTransaction(transaction) }
+    }
 
     val thisMonthIncome: StateFlow<Double> = transactionDao.getTotalIncome(defaultAccountId)
         .combine(MutableStateFlow(0.0)) { income, _ -> income ?: 0.0 }
@@ -101,13 +102,13 @@ class WalletViewModel(
         .combine(MutableStateFlow(0.0)) { expense, _ -> expense ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
-    val totalBalance: StateFlow<Double> = combine(thisMonthIncome, thisMonthExpense) { income, expense ->
+    val totalBalance: StateFlow<Double> = combine(thisMonthIncome, thisMonthExpense) { income, expense ->       
         income - expense
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     val spendingByCategory: StateFlow<List<CategorySpending>> = combine(recentTransactions, thisMonthExpense) { transactions, totalExpense ->
         if (totalExpense <= 0) return@combine emptyList<CategorySpending>()
-        
+
         transactions
             .filter { it.type == "Expense" }
             .groupBy { it.category }
@@ -122,16 +123,131 @@ class WalletViewModel(
             .sortedByDescending { it.amount }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // Goal Actions
+    fun addGoal(name: String, target: Double, deadline: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            goalDao.insertGoal(GoalEntity(name = name, targetAmount = target, deadline = deadline))
+        }
+    }
+
+    fun updateGoalSavedAmount(goal: GoalEntity, newAmount: Double) {
+        viewModelScope.launch(Dispatchers.IO) {
+            goalDao.updateGoal(goal.copy(savedAmount = newAmount))
+        }
+    }
+
+    fun deleteGoal(goal: GoalEntity) {
+        viewModelScope.launch(Dispatchers.IO) {
+            goalDao.deleteGoal(goal)
+        }
+    }
+
+    // Budget Actions
+    fun addBudget(amount: Double, category: String, period: String, startDate: Long, endDate: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            budgetDao.insertBudget(BudgetEntity(amount = amount, category = category, period = period, startDate = startDate, endDate = endDate))
+        }
+    }
+
+    fun deleteBudget(budget: BudgetEntity) {
+        viewModelScope.launch(Dispatchers.IO) { budgetDao.deleteBudget(budget) }
+    }
+
+    // Recurring Actions
+    fun addRecurring(amount: Double, note: String, category: String, type: String, frequency: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            recurringDao.insertRecurring(RecurringTransactionEntity(
+                amount = amount, note = note, category = category, type = type, frequency = frequency,
+                accountId = defaultAccountId, nextOccurrence = System.currentTimeMillis()
+            ))
+        }
+    }
+
+    fun deleteRecurring(recurring: RecurringTransactionEntity) {
+        viewModelScope.launch(Dispatchers.IO) { recurringDao.deleteRecurring(recurring) }
+    }
+
+    // Label Actions
+    fun addLabel(name: String, color: String = "#2196F3") {
+        viewModelScope.launch(Dispatchers.IO) {
+            labelDao.insertLabel(LabelEntity(name = name, color = color))
+        }
+    }
+
+    fun deleteLabel(label: LabelEntity) {
+        viewModelScope.launch(Dispatchers.IO) { labelDao.deleteLabel(label) }
+    }
+
+    // Account Actions
     fun addAccount(name: String, type: String, initialBalance: Double) {
         viewModelScope.launch(Dispatchers.IO) {
             accountDao.insertAccount(AccountEntity(name = name, type = type, initialBalance = initialBalance))
         }
     }
 
-    // Loan Actions
-    fun addPerson(name: String, photoPath: String? = null) {
+    // Transaction Actions
+    fun addTransaction(amount: Double, note: String, category: String, isIncome: Boolean, onComplete: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            personDao.insertPerson(PersonEntity(name = name, photoPath = photoPath))
+            _isSaving.value = true
+            try {
+                transactionDao.insertTransaction(
+                    TransactionEntity(
+                        amount = amount,
+                        note = note,
+                        category = category,
+                        type = if (isIncome) "Income" else "Expense",
+                        accountId = defaultAccountId,
+                        date = System.currentTimeMillis()
+                    )
+                )
+                withContext(Dispatchers.Main) { onComplete() }
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _isSaving.value = false
+            }
+        }
+    }
+
+    fun addTransfer(amount: Double, note: String, fromAccountId: String, toAccountId: String, onComplete: () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isSaving.value = true
+            try {
+                // Outgoing from source account
+                transactionDao.insertTransaction(
+                    TransactionEntity(
+                        amount = amount,
+                        note = "Transfer to account: $note",
+                        category = "Transfer",
+                        type = "Expense",
+                        accountId = fromAccountId,
+                        date = System.currentTimeMillis()
+                    )
+                )
+                // Incoming to target account
+                transactionDao.insertTransaction(
+                    TransactionEntity(
+                        amount = amount,
+                        note = "Transfer from account: $note",
+                        category = "Transfer",
+                        type = "Income",
+                        accountId = toAccountId,
+                        date = System.currentTimeMillis()
+                    )
+                )
+                withContext(Dispatchers.Main) { onComplete() }
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _isSaving.value = false
+            }
+        }
+    }
+
+    // Loan Actions
+    fun addPerson(name: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            personDao.insertPerson(PersonEntity(name = name))
         }
     }
 
@@ -153,131 +269,20 @@ class WalletViewModel(
         }
     }
 
-    fun deleteLoan(loan: LoanEntity) {
+    // Category Actions
+    fun addCategory(name: String, icon: String = "List") {
         viewModelScope.launch(Dispatchers.IO) {
-            loanDao.deleteLoan(loan)
+            categoryDao.insertCategory(CategoryEntity(name = name, icon = icon))
         }
     }
 
-    fun saveTransaction(amount: Double, note: String, type: String, category: String, onSuccess: () -> Unit) {
+    fun deleteCategory(category: CategoryEntity) {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                _error.value = null
-                val transaction = TransactionEntity(
-                    amount = amount,
-                    date = System.currentTimeMillis(),
-                    type = type,
-                    note = note,
-                    category = category,
-                    accountId = defaultAccountId // Updated to String for UUID migration
-                )
-                transactionDao.insertTransaction(transaction)
-                
-                withContext(Dispatchers.Main) {
-                    onSuccess()
-                }
-            } catch (e: Exception) {
-                _error.value = "Error: ${e.message}"
-            }
+            categoryDao.deleteCategory(category)
         }
     }
 
-    fun addTransaction(amount: String, note: String, category: String, isIncome: Boolean, navigateBack: () -> Unit) {
-        val parsedAmount = amount.toDoubleOrNull()
-        if (parsedAmount == null || parsedAmount <= 0.0) {
-            _error.value = "Please enter a valid amount."
-            return
-        }
-
-        _isSaving.value = true
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                _error.value = null
-                val transaction = TransactionEntity(
-                    amount = parsedAmount,
-                    date = System.currentTimeMillis(),
-                    type = if (isIncome) "Income" else "Expense",
-                    note = note,
-                    category = category,
-                    accountId = defaultAccountId // Updated to String for UUID migration
-                )
-                transactionDao.insertTransaction(transaction)
-                
-                withContext(Dispatchers.Main) {
-                    _isSaving.value = false
-                    navigateBack()
-                }
-            } catch (e: Exception) {
-                _isSaving.value = false
-                _error.value = "Failed to save transaction: ${e.message}"
-            }
-        }
-    }
-
-    fun addTransfer(amount: String, note: String, fromAccount: String, toAccount: String, navigateBack: () -> Unit) {
-        val parsedAmount = amount.toDoubleOrNull()
-        if (parsedAmount == null || parsedAmount <= 0.0) {
-            _error.value = "Please enter a valid amount."
-            return
-        }
-        if (fromAccount.isBlank() || toAccount.isBlank() || fromAccount == toAccount) {
-            _error.value = "Invalid accounts for transfer."
-            return
-        }
-
-        _isSaving.value = true
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                _error.value = null
-                val time = System.currentTimeMillis()
-                
-                // Expense from source account
-                val outTx = TransactionEntity(
-                    amount = parsedAmount,
-                    date = time,
-                    type = "Expense",
-                    note = note.ifBlank { "Transfer to Account" },
-                    category = "Transfer",
-                    accountId = fromAccount
-                )
-                
-                // Income to destination account
-                val inTx = TransactionEntity(
-                    amount = parsedAmount,
-                    date = time,
-                    type = "Income",
-                    note = note.ifBlank { "Transfer from Account" },
-                    category = "Transfer",
-                    accountId = toAccount
-                )
-                
-                transactionDao.insertTransaction(outTx)
-                transactionDao.insertTransaction(inTx)
-                
-                withContext(Dispatchers.Main) {
-                    _isSaving.value = false
-                    navigateBack()
-                }
-            } catch (e: Exception) {
-                _isSaving.value = false
-                _error.value = "Failed to save transfer: ${e.message}"
-            }
-        }
-    }
-
-    fun deleteTransaction(transaction: TransactionEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                transactionDao.deleteTransaction(transaction)
-            } catch (e: Exception) {
-                _error.value = "Failed to delete transaction: ${e.message}"
-            }
-        }
-    }
-
-    fun clearError() {
-        _error.value = null
-    }
+    fun clearError() { _error.value = null }
 
     class Factory(
         private val accountDao: AccountDao,
@@ -285,12 +290,16 @@ class WalletViewModel(
         private val categoryDao: CategoryDao,
         private val personDao: PersonDao,
         private val loanDao: LoanDao,
+        private val budgetDao: BudgetDao,
+        private val goalDao: GoalDao,
+        private val recurringDao: RecurringTransactionDao,
+        private val labelDao: LabelDao,
         private val sharedPreferences: SharedPreferences
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(WalletViewModel::class.java)) {
-                return WalletViewModel(accountDao, transactionDao, categoryDao, personDao, loanDao, sharedPreferences) as T
+                return WalletViewModel(accountDao, transactionDao, categoryDao, personDao, loanDao, budgetDao, goalDao, recurringDao, labelDao, sharedPreferences) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

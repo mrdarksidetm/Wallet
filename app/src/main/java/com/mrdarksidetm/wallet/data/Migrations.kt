@@ -13,9 +13,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  * We must provide explicit SQL statements for every schema evolution.
  */
 val MIGRATION_1_2 = object : Migration(1, 2) {
-    override fun migrate(database: SupportSQLiteDatabase) {
+    override fun migrate(db: SupportSQLiteDatabase) {
         // Example: Adding geofencing columns to domain_transactions table safely
-        database.execSQL("ALTER TABLE domain_transactions ADD COLUMN latitude REAL DEFAULT NULL")
-        database.execSQL("ALTER TABLE domain_transactions ADD COLUMN longitude REAL DEFAULT NULL")
+        db.execSQL("ALTER TABLE domain_transactions ADD COLUMN latitude REAL DEFAULT NULL")
+        db.execSQL("ALTER TABLE domain_transactions ADD COLUMN longitude REAL DEFAULT NULL")
     }
 }

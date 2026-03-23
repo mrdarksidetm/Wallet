@@ -9,13 +9,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [AccountEntity::class, TransactionEntity::class, CategoryEntity::class, PersonEntity::class, LoanEntity::class], version = 3, exportSchema = false)
+@Database(entities = [AccountEntity::class, TransactionEntity::class, CategoryEntity::class, PersonEntity::class, LoanEntity::class, BudgetEntity::class, GoalEntity::class, RecurringTransactionEntity::class, LabelEntity::class], version = 7, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
     abstract fun transactionDao(): TransactionDao
     abstract fun categoryDao(): CategoryDao
     abstract fun personDao(): PersonDao
     abstract fun loanDao(): LoanDao
+    abstract fun budgetDao(): BudgetDao
+    abstract fun goalDao(): GoalDao
+    abstract fun recurringDao(): RecurringTransactionDao
+    abstract fun labelDao(): LabelDao
 
     companion object {
         @Volatile
@@ -28,7 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "wallet_database"
                 )
-                .fallbackToDestructiveMigration()
+                .fallbackToDestructiveMigration(dropAllTables = true)
                 .addCallback(object : Callback() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)

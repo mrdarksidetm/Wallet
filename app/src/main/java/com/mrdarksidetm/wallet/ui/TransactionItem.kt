@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,7 +30,7 @@ fun getCategoryIcon(categoryName: String): ImageVector {
         "education" -> Icons.Default.School
         "bills" -> Icons.Default.Receipt
         "salary" -> Icons.Default.AttachMoney
-        "investment" -> Icons.Default.TrendingUp
+        "investment" -> Icons.AutoMirrored.Filled.TrendingUp
         "transfer" -> Icons.Default.SwapHoriz
         else -> Icons.Default.Category
     }

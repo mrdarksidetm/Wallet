@@ -16,4 +16,7 @@ interface CategoryDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCategories(categories: List<CategoryEntity>)
+
+    @androidx.room.Delete
+    suspend fun deleteCategory(category: CategoryEntity)
 }

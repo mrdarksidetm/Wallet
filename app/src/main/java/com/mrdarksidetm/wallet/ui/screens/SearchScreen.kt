@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -37,29 +37,35 @@ fun SearchScreen() {
 
     Box(modifier = Modifier.fillMaxSize()) {
         SearchBar(
-            modifier = Modifier.fillMaxWidth(),
-            query = query,
-            onQueryChange = { query = it },
-            onSearch = { active = false },
-            active = active,
-            onActiveChange = { active = it },
-            placeholder = { Text("Search transactions...") },
-            leadingIcon = {
-                if (active) {
-                    IconButton(onClick = { active = false }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+            inputField = {
+                SearchBarDefaults.InputField(
+                    query = query,
+                    onQueryChange = { query = it },
+                    onSearch = { active = false },
+                    expanded = active,
+                    onExpandedChange = { active = it },
+                    placeholder = { Text("Search transactions...") },
+                    leadingIcon = {
+                        if (active) {
+                            IconButton(onClick = { active = false }) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            }
+                        } else {
+                            Icon(Icons.Default.Search, contentDescription = "Search")
+                        }
+                    },
+                    trailingIcon = {
+                        if (active && query.isNotEmpty()) {
+                            IconButton(onClick = { query = "" }) {
+                                Icon(Icons.Default.Close, contentDescription = "Clear")
+                            }
+                        }
                     }
-                } else {
-                    Icon(Icons.Default.Search, contentDescription = "Search")
-                }
+                )
             },
-            trailingIcon = {
-                if (active && query.isNotEmpty()) {
-                    IconButton(onClick = { query = "" }) {
-                        Icon(Icons.Default.Close, contentDescription = "Clear")
-                    }
-                }
-            }
+            expanded = active,
+            onExpandedChange = { active = it },
+            modifier = Modifier.fillMaxWidth()
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),

@@ -58,7 +58,7 @@ fun AddAccountScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
                     readOnly = true,
                     label = { Text("Account Type") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier.menuAnchor().fillMaxWidth()
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true).fillMaxWidth()
                 )
                 ExposedDropdownMenu(
                     expanded = expanded,

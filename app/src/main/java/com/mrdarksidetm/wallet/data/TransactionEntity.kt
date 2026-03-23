@@ -35,5 +35,6 @@ data class TransactionEntity(
     val type: String, // Income, Expense, Transfer
     val note: String,
     val category: String, // Keep as String name or shift to Category UUID later
-    val accountId: String // Updated to String to match AccountEntity UUID
+    val accountId: String,
+    val isArchived: Boolean = false // Updated to String to match AccountEntity UUID
 )

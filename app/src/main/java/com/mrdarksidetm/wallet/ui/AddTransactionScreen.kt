@@ -101,7 +101,7 @@ fun AddTransactionScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
                         readOnly = true,
                         label = { Text("Category") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                        modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true).fillMaxWidth()
                     )
                     ExposedDropdownMenu(
                         expanded = expanded,
@@ -132,7 +132,7 @@ fun AddTransactionScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
                             readOnly = true,
                             label = { Text("From") },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedFrom) },
-                            modifier = Modifier.menuAnchor().fillMaxWidth()
+                            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true).fillMaxWidth()
                         )
                         ExposedDropdownMenu(
                             expanded = expandedFrom,
@@ -161,7 +161,7 @@ fun AddTransactionScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
                             readOnly = true,
                             label = { Text("To") },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTo) },
-                            modifier = Modifier.menuAnchor().fillMaxWidth()
+                            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true).fillMaxWidth()
                         )
                         ExposedDropdownMenu(
                             expanded = expandedTo,
@@ -187,10 +187,11 @@ fun AddTransactionScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
 
             Button(
                 onClick = { 
+                    val amt = amount.toDoubleOrNull() ?: 0.0
                     if (transactionType == 2) {
-                        viewModel.addTransfer(amount, note, fromAccount, toAccount, onBack)
+                        viewModel.addTransfer(amt, note, fromAccount, toAccount, onBack)
                     } else {
-                        viewModel.addTransaction(amount, note, selectedCategory, transactionType == 1, onBack)
+                        viewModel.addTransaction(amt, note, selectedCategory, transactionType == 1, onBack)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),

@@ -7,9 +7,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import android.content.Context
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.CreditCard
@@ -35,6 +35,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mrdarksidetm.wallet.data.AppDatabase
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import com.mrdarksidetm.wallet.ui.screens.SearchScreen
 
 import kotlinx.coroutines.launch
 
@@ -43,27 +44,26 @@ import kotlinx.coroutines.launch
 fun MainAppScreen() {
     val context = LocalContext.current
     val db = remember { AppDatabase.getDatabase(context) }
-    val sharedPreferences = remember { context.getSharedPreferences("wallet_prefs", Context.MODE_PRIVATE) }
+    val sharedPreferences = remember { context.getSharedPreferences("wallet_prefs", Context.MODE_PRIVATE) }     
     val viewModel: WalletViewModel = viewModel(
         factory = WalletViewModel.Factory(
             db.accountDao(),
-            db.transactionDao(), 
+            db.transactionDao(),
             db.categoryDao(),
             db.personDao(),
             db.loanDao(),
+            db.budgetDao(),
+            db.goalDao(),
+            db.recurringDao(),
+            db.labelDao(), // Added missing Dao
             sharedPreferences
         )
     )
 
     val navController = rememberNavController()
     var selectedItem by remember { mutableIntStateOf(0) }
-    val items = listOf("home", "accounts", "reports", "search")
-    val itemLabels = listOf("Home", "Accounts", "Reports", "Search")
-    val icons = listOf(Icons.Default.Home, Icons.Default.List, Icons.Default.PieChart, Icons.Default.Search)
     
     val snackbarHostState = remember { SnackbarHostState() }
-    val userName by viewModel.userName.collectAsState()
-    val userPhotoPath by viewModel.userPhotoPath.collectAsState()
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -82,13 +82,13 @@ fun MainAppScreen() {
                 navItems.forEachIndexed { index, item ->
                     NavigationBarItem(
                         icon = { Icon(navIcons[index], contentDescription = navLabels[index]) },
-                        label = { Text(navLabels[index], style = MaterialTheme.typography.labelSmall) },
+                        label = { Text(navLabels[index], style = MaterialTheme.typography.labelSmall) },        
                         selected = selectedItem == index,
-                        onClick = { 
-                            selectedItem = index 
+                        onClick = {
+                            selectedItem = index
                             navController.navigate(item) {
-                                popUpTo(navController.graph.startDestinationId) { 
-                                    saveState = true 
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
                                 }
                                 launchSingleTop = true
                                 restoreState = true
@@ -107,7 +107,7 @@ fun MainAppScreen() {
         floatingActionButton = {
             if (selectedItem == 0 || selectedItem == 1) {
                 FloatingActionButton(
-                    onClick = { 
+                    onClick = {
                         viewModel.clearError()
                         if (selectedItem == 0) navController.navigate("add_transaction")
                         else navController.navigate("add_account")
@@ -118,23 +118,54 @@ fun MainAppScreen() {
                     elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 8.dp)
                 ) {
                     Icon(
-                        if (selectedItem == 0) Icons.Default.Add else Icons.Default.AccountBalanceWallet,
+                        if (selectedItem == 0) Icons.Default.Add else Icons.Default.AccountBalanceWallet,       
                         contentDescription = "Add"
                     )
                 }
             }
         }
     ) { innerPadding ->
-        val scope = rememberCoroutineScope()
         Surface(modifier = Modifier.padding(innerPadding)) {
             NavHost(navController = navController, startDestination = "home") {
-                composable("home") { 
+                composable("home") {
                     HomeScreen(
                         viewModel = viewModel,
                         onNavigateToSettings = { navController.navigate("settings") },
-                        onNavigateToSubMenu = { title -> navController.navigate("home_submenu/$title") },
+                        onNavigateToSubMenu = { title ->
+                            when (title) {
+                                "Budgets" -> navController.navigate("budgets")
+                                "Assets" -> navController.navigate("assets")
+                                "Bill Splitter" -> navController.navigate("bill_splitter")
+                                "Goals" -> navController.navigate("goals")
+                                "Recurring" -> navController.navigate("recurring")
+                                "Labels" -> navController.navigate("labels")
+                                "Categories" -> navController.navigate("categories")
+                                else -> navController.navigate("home_submenu/$title")
+                            }
+                        },
                         onLoansClick = { navController.navigate("loans") }
-                    ) 
+                    )
+                }
+                composable("budgets") {
+                    BudgetsScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+                }
+                composable("goals") {
+                    GoalsScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+                }
+                composable("recurring") {
+                    RecurringScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+                }
+                composable("labels") {
+                    LabelsScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+                }
+                composable("categories") {
+                    CategoriesScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+                }
+                composable("assets") {
+                    AssetsScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+                }
+                composable("bill_splitter") {
+                    BillSplitterScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
                 }
                 composable("accounts") {
                     AccountsScreen(viewModel = viewModel, snackbarHostState = snackbarHostState)
@@ -149,8 +180,8 @@ fun MainAppScreen() {
                     val title = backStackEntry.arguments?.getString("title") ?: "Menu"
                     HomeSubMenuScreen(title = title, onBack = { navController.popBackStack() })
                 }
-                composable("add_transaction") { 
-                    AddTransactionScreen(viewModel = viewModel, onBack = { navController.popBackStack() }) 
+                composable("add_transaction") {
+                    AddTransactionScreen(viewModel = viewModel, onBack = { navController.popBackStack() })      
                 }
                 composable("add_account") {
                     AddAccountScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
@@ -159,7 +190,7 @@ fun MainAppScreen() {
                     ProfileScreen(viewModel, onBack = { navController.popBackStack() }, onSettingsClick = { navController.navigate("settings") })
                 }
                 composable("settings") {
-                    SettingsScreen(viewModel = viewModel, onNavigateBack = { navController.popBackStack() })
+                    SettingsScreen(viewModel = viewModel, onNavigateBack = { navController.popBackStack() })    
                 }
                 composable("loans") {
                     LoanScreen(viewModel, onBack = { navController.popBackStack() })
@@ -173,9 +204,9 @@ fun MainAppScreen() {
 fun HomeSubMenuScreen(title: String, onBack: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text(text = title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)   
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Sub-menu content for $title", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = "Sub-menu content for $title", color = MaterialTheme.colorScheme.onSurfaceVariant)      
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onBack) {
                 Text("Go Back")
@@ -184,18 +215,3 @@ fun HomeSubMenuScreen(title: String, onBack: () -> Unit) {
     }
 }
 
-@Composable
-fun SearchScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Search Transactions", style = MaterialTheme.typography.titleLarge)
-            Text("Feature coming soon", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(onClick = onBack) {
-                Text("Go Back")
-            }
-        }
-    }
-}

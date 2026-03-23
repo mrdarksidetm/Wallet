@@ -9,6 +9,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -43,7 +46,7 @@ fun SettingsScreen(
             title = { Text("Settings", fontWeight = FontWeight.Bold) },
             navigationIcon = {
                 IconButton(onClick = onNavigateBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
             },
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -106,7 +109,7 @@ fun SettingsScreen(
 
         SettingsSectionTitle("Security & Privacy")
         SettingsItem(Icons.Default.Fingerprint, "Biometrics", "Secure with fingerprint")
-        SettingsItem(Icons.Default.Policy, "Privacy Policy", "Learn how we handle data", showChevron = false, trailingIcon = Icons.Default.OpenInNew)
+        SettingsItem(Icons.Default.Policy, "Privacy Policy", "Learn how we handle data", showChevron = false, trailingIcon = Icons.AutoMirrored.Filled.OpenInNew)
 
         Spacer(modifier = Modifier.height(32.dp))
         
@@ -121,7 +124,7 @@ fun SettingsScreen(
             border = androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
         ) {
-            Icon(Icons.Default.Logout, contentDescription = null)
+            Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text("Sign Out", fontWeight = FontWeight.Bold)
         }
