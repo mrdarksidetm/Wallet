@@ -9,11 +9,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.mrdarksidetm.wallet"
+    namespace = "com.darkside.wallet"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.mrdarksidetm.wallet"
+        applicationId = "com.darkside.wallet"
         minSdk = 29
         targetSdk = 34
         versionCode = 1

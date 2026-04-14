@@ -1,83 +1,89 @@
-# SPEC.md — Wallet App Design Specification
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# This file is IDENTICAL in both the Compose and Flutter repos.
-# It is the single source of truth for feature parity between both versions.
-# When you update a feature, update THIS SPEC first, then implement in both codebases.
-#
-# Last synced: 2026-03-21 (Post-Expansion Build)
+# 📜 Wallet (Compose) Design Specification (SPEC.md)
 
-## 1. App Identity
-
-| Field          | Value                                   |
-|----------------|------------------------------------------|
-| Name           | Wallet                                  |
-| Package (Android) | `com.mrdarksidetm.wallet`            |
-| Design System  | Material 3 (BOM 2024.10+) + Stitch DNA  |
-| Iconography    | Adaptive Icons (Android)                |
-| Architecture   | MVVM + Unidirectional Data Flow         |
-| Network        | **Offline-first. Zero network calls.**  |
+This is the **Single Source of Truth** for the Project Wallet (Jetpack Compose) version. 🏦
 
 ---
 
-## 2. Data Model
+## 💎 1. App Identity
 
-### 2.3 Budget
-| Field      | Type     | Kotlin (Room)     | Notes                           |
-|------------|----------|-------------------|---------------------------------|
-| id         | String   | `String` (UUID)   | Primary key                     |
-| amount     | Decimal  | `Double`          | Limit amount                    |
-| category   | String   | `String`          | Budgeted category               |
-| period     | String   | `String`          | Weekly, Monthly, Yearly         |
-
-### 2.4 Goal (New)
-| Field        | Type     | Kotlin (Room)     | Notes                           |
-|--------------|----------|-------------------|---------------------------------|
-| id           | String   | `String` (UUID)   | Primary key                     |
-| name         | String   | `String`          | Goal name (e.g. "New Car")      |
-| targetAmount | Decimal  | `Double`          | How much to save                |
-| savedAmount  | Decimal  | `Double`          | Current progress                |
-| deadline     | Datetime | `Long`            | Target date                     |
-
-### 2.5 Recurring Transaction (New)
-| Field          | Type     | Kotlin (Room)     | Notes                           |
-|----------------|----------|-------------------|---------------------------------|
-| id             | String   | `String` (UUID)   | Primary key                     |
-| amount         | Decimal  | `Double`          | Amount                          |
-| frequency      | String   | `String`          | Daily, Weekly, Monthly          |
-| nextOccurrence | Datetime | `Long`            | When to process next            |
-
-### 2.6 Label (New)
-| Field | Type   | Kotlin (Room)     | Notes                    |
-|-------|--------|-------------------|--------------------------|
-| id    | String | `String` (UUID)   | Primary key              |
-| name  | String | `String`          | Label name               |
-| color | String | `String` (Hex)    | UI display color         |
+*   **Project Name**: Wallet (Jetpack Compose) 🏦
+*   **Package Name**: `com.darkside.wallet` 📦
+*   **Version**: 1.0.0 ("The Native Stitch") 💎
+*   **Target SDK**: Android 14+ (API 34) 🤖
+*   **Design Language**: Material 3 Expressive (Editorial Style) 🎨
+*   **Core Mandate**: Offline-first, Privacy-centric, High-Performance (60-120 FPS). ⚡
 
 ---
 
-## 6. Feature Parity Checklist
+## 📊 2. Data Model (Room Entities)
 
-| Feature                       | Compose | Flutter | Notes                         |
-|-------------------------------|---------|---------|-------------------------------|
-| Room/Isar database            | ✅      | ✅      | Version 7 (Room)              |
-| Budgets                       | ✅      | ✅      | Full CRUD implemented         |
-| Goals (Savings)               | ✅      | ✅      | Progress tracking & UI        |
-| Recurring Transactions        | ✅      | ✅      | Entity & UI built             |
-| Labels / Tags                 | ✅      | ✅      | Basic system added            |
-| Categories Management         | ✅      | ✅      | Full CRUD UI implemented      |
-| Donut Chart (Canvas)          | ✅      | ✅      | Native implementation         |
-| Loans (Lent/Borrowed/People)  | ✅      | ✅      | Synced to Flutter             |
-| Dark/Light Mode Consistency   | ✅      | ✅      | Stitch custom palette         |
+### **🏦 2.1 AccountEntity**
+- **id**: String (UUID, Primary Key) 🔑
+- **name**: String (Index) 📝
+- **type**: String (e.g., Cash, Bank, CreditCard) 💳
+- **initialBalance**: double 💵
+
+### **💸 2.2 TransactionEntity**
+- **id**: String (UUID, Primary Key) 🔑
+- **amount**: double 💵
+- **date**: Long (Timestamp) 📅
+- **type**: String (Income, Expense, Transfer) 🔄
+- **note**: String 📝
+- **category**: String (Category name/slug) 📂
+- **accountId**: String (ForeignKey to AccountEntity) 🔗
+- **isArchived**: Boolean ✅
+
+### **💹 2.3 Future Entities (Parity Map)**
+*Planned for parity with Wallet-Flutter:*
+- **CategoryEntity**: UUID-based category management.
+- **BudgetEntity**: Monthly spending limits.
+- **GoalEntity**: Savings targets tracking.
+- **PersonEntity**: Links for loans and bill splitting.
 
 ---
 
-## 10. Debug History & Known Issues
+## 🎨 3. Design System (Material 3)
 
-### 2026-03-21: Core Feature Expansion
-- **Database:** Bumped Room schema to Version 7. Integrated `GoalEntity`, `RecurringTransactionEntity`, and `LabelEntity`.
-- **ViewModel:** Massive refactor of `WalletViewModel` to support 9 different DAOs with clean Reactive Streams (StateFlow).
-- **UI:** Built `GoalsScreen.kt`, `RecurringScreen.kt`, `LabelsScreen.kt`, and `CategoriesScreen.kt`.
-- **Navigation:** Fully wired all 15 home grid items to their respective (new or placeholder) screens in `MainAppScreen.kt`.
-- **Analytics:** Verified Native Canvas Donut chart performance with `animateFloatAsState`.
+### **📐 Layout Geometry**
+- **Border Radius**: 32dp (Bottom Sheets), 24dp (Large Cards), 16dp (Dialogs). 📏
+- **Padding**: 24dp (Standard Outer Margin), 16dp (Internal Spacing). 📏
+- **Visual Style**: "Stitch" depth with subtle gradients and glassy surfaces. 🧵
+
+### **🎭 Typography & Icons**
+- **Font**: `Google Sans Flex` (Variable weight). ✒️
+- **Icons**: `Material Icons Extended` (Rounded style). 🎭
+- **Performance**: Native Compose `Canvas` for all visualizations. ⛸️
 
 ---
+
+## ✅ 4. Feature Implementation Status
+
+### **Core**
+- [x] Room Database Integration (Offline-first). ✅
+- [x] UUID-based Primary Keys (Sync-ready). ✅
+- [x] Basic Transaction CRUD. ✅
+- [x] Account-aware balance calculations. ✅
+
+### **Home & UI**
+- [x] Material 3 Home Screen with "Stitch" style. ✅
+- [x] Balance Hero Section. ✅
+- [x] Interactive Overview Grid (8-card layout). ✅
+- [x] **New**: PRO/Premium visual badges. ✅
+
+### **Parity Backlog (To-Do)**
+- [ ] Advanced Charts (Line/Donut parity). 📊
+- [ ] Bill Splitter & People integration. 👥
+- [ ] Goals & Budgets modules. 🎯
+- [ ] Recurring transactions engine. 🔄
+
+---
+
+## 🛠️ 5. Technical Context
+
+- **Architecture**: MVVM with Unidirectional Data Flow (UDF). 🏛️
+- **State Management**: Kotlin StateFlow & CollectAsStateWithLifecycle. ⚡
+- **Database**: Room (SQLite) with Coroutines & Flow. 💾
+- **DI**: Manual Injection (ViewModelProviders) for efficiency. ⚙️
+
+---
+*SPEC maintained by the Wallet Core Team.* 💼
