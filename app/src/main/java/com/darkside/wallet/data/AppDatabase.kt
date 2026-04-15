@@ -9,7 +9,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [AccountEntity::class, TransactionEntity::class, CategoryEntity::class, PersonEntity::class, LoanEntity::class, BudgetEntity::class, GoalEntity::class, RecurringTransactionEntity::class, LabelEntity::class], version = 7, exportSchema = false)
+@Database(entities = [AccountEntity::class, TransactionEntity::class, CategoryEntity::class, PersonEntity::class, LoanEntity::class, BudgetEntity::class, GoalEntity::class, RecurringTransactionEntity::class, LabelEntity::class], version = 8, exportSchema = false)
+@androidx.room.TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
     abstract fun transactionDao(): TransactionDao

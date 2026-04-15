@@ -17,7 +17,12 @@ import java.util.UUID
  */
 @Entity(
     tableName = "transactions",
-    indices = [androidx.room.Index(value = ["accountId"])],
+    indices = [
+        androidx.room.Index(value = ["accountId"]),
+        androidx.room.Index(value = ["personId"]),
+        androidx.room.Index(value = ["loanId"]),
+        androidx.room.Index(value = ["transferAccountId"])
+    ],
     foreignKeys = [
         ForeignKey(
             entity = AccountEntity::class,
@@ -30,11 +35,22 @@ import java.util.UUID
 data class TransactionEntity(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
-    val amount: Double,
-    val date: Long,
-    val type: String, // Income, Expense, Transfer
-    val note: String,
-    val category: String, // Keep as String name or shift to Category UUID later
-    val accountId: String,
-    val isArchived: Boolean = false // Updated to String to match AccountEntity UUID
+    val amount: Double = 0.0,
+    val date: Long = System.currentTimeMillis(),
+    val type: String = "expense", // income, expense, transfer
+    val note: String = "",
+    val categoryId: String = "",
+    val accountId: String = "",
+    val transferAccountId: String? = null,
+    val personId: String? = null,
+    val loanId: String? = null,
+    val placeId: String? = null,
+    val icon: String? = null,
+    val color: Int? = null,
+    val tags: List<String> = emptyList(), // Needs TypeConverter
+    val isArchived: Boolean = false,
+    val isDeleted: Boolean = false,
+    val isTemplate: Boolean = false,
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis()
 )

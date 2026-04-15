@@ -248,6 +248,7 @@ fun HomeScreen(
                     Pair("Person", Icons.Default.Person) to "0 people",
                     Pair("Calendar heatmap", Icons.Default.DateRange) to "Activity",
                     Pair("Trend", Icons.AutoMirrored.Filled.TrendingUp) to "Growth",
+                    Pair("Audit", Icons.Default.Speed) to "Run Performance",
                     Pair("Recent transactions", Icons.AutoMirrored.Filled.List) to "History"
                 )
 
@@ -455,21 +456,21 @@ fun TransactionListItem(transaction: TransactionEntity) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                if (transaction.type == "Income") Icons.AutoMirrored.Filled.TrendingUp else Icons.Default.ShoppingBag,      
+                if (transaction.type == "income") Icons.AutoMirrored.Filled.TrendingUp else Icons.Default.ShoppingBag,      
                 contentDescription = null,
-                tint = if (transaction.type == "Income") PaisaGreen else PaisaRed
+                tint = if (transaction.type == "income") PaisaGreen else PaisaRed
             )
         }
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = transaction.note.ifBlank { transaction.category }, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-            Text(text = transaction.category, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = transaction.note.ifBlank { transaction.categoryId }, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+            Text(text = transaction.categoryId, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Text(
-            text = "${if (transaction.type == "Income") "+" else "-"}${formatter.format(transaction.amount)}",  
+            text = "${if (transaction.type == "income") "+" else "-"}${formatter.format(transaction.amount)}",  
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = if (transaction.type == "Income") PaisaGreen else PaisaRed
+            color = if (transaction.type == "income") PaisaGreen else PaisaRed
         )
     }
 }

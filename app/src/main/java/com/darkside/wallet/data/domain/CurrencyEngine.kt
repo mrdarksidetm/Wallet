@@ -26,6 +26,25 @@ object CurrencyEngine {
             "BRL" -> Locale("pt", "BR")
             "RUB" -> Locale("ru", "RU")
             "KRW" -> Locale.KOREA
+            "CHF" -> Locale("de", "CH")
+            "SGD" -> Locale("en", "SG")
+            "MXN" -> Locale("es", "MX")
+            "IDR" -> Locale("id", "ID")
+            "TRY" -> Locale("tr", "TR")
+            "SAR" -> Locale("ar", "SA")
+            "AED" -> Locale("ar", "AE")
+            "ZAR" -> Locale("en", "ZA")
+            "NZD" -> Locale("en", "NZ")
+            "THB" -> Locale("th", "TH")
+            "VND" -> Locale("vi", "VN")
+            "MYR" -> Locale("ms", "MY")
+            "PHP" -> Locale("en", "PH")
+            "PLN" -> Locale("pl", "PL")
+            "SEK" -> Locale("sv", "SE")
+            "NOK" -> Locale("nb", "NO")
+            "DAK" -> Locale("da", "DK")
+            "HUF" -> Locale("hu", "HU")
+            "CZK" -> Locale("cs", "CZ")
             else -> Locale.US
         }
     }

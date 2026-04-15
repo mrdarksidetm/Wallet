@@ -19,4 +19,7 @@ interface GoalDao {
 
     @Query("SELECT * FROM goals WHERE id = :id")
     suspend fun getGoalById(id: String): GoalEntity?
+
+    @Query("SELECT * FROM goals WHERE accountId = :accountId AND isDeleted = 0")
+    suspend fun getGoalsForAccount(accountId: String): List<GoalEntity>
 }

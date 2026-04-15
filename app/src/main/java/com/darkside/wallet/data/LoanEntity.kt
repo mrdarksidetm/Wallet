@@ -20,10 +20,18 @@ import java.util.UUID
 data class LoanEntity(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
-    val personId: String,
-    val amount: Double,
-    val type: String, // "Lent" or "Borrowed"
-    val note: String,
+    val personId: String = "",
+    val accountId: String? = null,
+    val amount: Double = 0.0,
+    val remainingAmount: Double = 0.0,
+    val type: String = "borrowed", // lent, borrowed
+    val note: String = "",
     val date: Long = System.currentTimeMillis(),
-    val isSettled: Boolean = false
+    val dueDate: Long? = null,
+    val isPaid: Boolean = false,
+    val isActive: Boolean = true,
+    val isArchived: Boolean = false,
+    val isDeleted: Boolean = false,
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis()
 )

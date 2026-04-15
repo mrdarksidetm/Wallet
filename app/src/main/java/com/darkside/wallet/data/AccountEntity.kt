@@ -14,7 +14,22 @@ import java.util.UUID
 data class AccountEntity(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
-    val name: String,
-    val type: String,
-    val initialBalance: Double
+    val name: String = "",
+    val bankName: String = "",
+    val number: String = "",
+    val validThru: Long = System.currentTimeMillis(),
+    val icon: String = "account_balance_wallet",
+    val color: Int = 0xFF2196F3.toInt(),
+    val isPredefined: Boolean = false,
+    val initialBalance: Double = 0.0,
+    val balance: Double = 0.0,
+    val isArchived: Boolean = false,
+    val isDeleted: Boolean = false,
+    val isDefault: Boolean = false,
+    val isExcludedFromTotal: Boolean = false,
+    val parentAccountId: String? = null,
+    val order: Int = 0,
+    val type: String = "cash", // cash, card, savings
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis()
 )

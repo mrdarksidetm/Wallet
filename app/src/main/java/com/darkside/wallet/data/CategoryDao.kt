@@ -19,4 +19,10 @@ interface CategoryDao {
 
     @androidx.room.Delete
     suspend fun deleteCategory(category: CategoryEntity)
+
+    @Query("SELECT * FROM categories WHERE id = :id LIMIT 1")
+    suspend fun getCategoryById(id: String): CategoryEntity?
+
+    @Query("SELECT * FROM categories")
+    fun getAllCategoriesOnce(): List<CategoryEntity>
 }

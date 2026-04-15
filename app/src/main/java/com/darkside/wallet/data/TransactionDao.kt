@@ -35,4 +35,19 @@ interface TransactionDao {
 
     @Query("SELECT * FROM transactions WHERE isArchived = 0 ORDER BY date DESC")
     fun getActiveTransactions(): Flow<List<TransactionEntity>>
+
+    @Query("SELECT * FROM transactions WHERE id = :id LIMIT 1")
+    suspend fun getTransactionById(id: String): TransactionEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertTransactionSync(transaction: TransactionEntity)
+
+    @Query("SELECT * FROM transactions WHERE isArchived = 0 ORDER BY date DESC LIMIT :limit")
+    fun getRecentTransactionsSync(limit: Int): List<TransactionEntity>
+
+    @Query("SELECT * FROM transactions WHERE type = :type AND isArchived = 0")
+    fun getTransactionsByTypeSync(type: String): List<TransactionEntity>
+
+    @Query("SELECT SUM(amount) FROM transactions WHERE isArchived = 0")
+    fun getTotalAmountSync(): Double
 }

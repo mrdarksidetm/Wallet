@@ -32,6 +32,7 @@ class WalletViewModel(
     private val goalDao: GoalDao,
     private val recurringDao: RecurringTransactionDao,
     private val labelDao: LabelDao,
+    private val transactionService: com.darkside.wallet.data.domain.TransactionService,
     private val sharedPreferences: SharedPreferences
 ) : ViewModel() {
 
@@ -71,8 +72,8 @@ class WalletViewModel(
     fun updatePersonPhoto(context: Context, person: PersonEntity, uri: android.net.Uri) {
         viewModelScope.launch(Dispatchers.IO) {
             val permanentPath = com.darkside.wallet.utils.FileUtils.saveImagePermanently(context, uri)
-            val updatedPerson = person.copy(photoPath = permanentPath)
-            personDao.insertPerson(updatedPerson)
+            val updatedPerson = person.copy(avatar = permanentPath)
+            personDao.updatePerson(updatedPerson)
         }
     }
 
@@ -113,33 +114,42 @@ class WalletViewModel(
     }
 
     fun deleteTransaction(transaction: TransactionEntity) {
-        viewModelScope.launch(Dispatchers.IO) { transactionDao.deleteTransaction(transaction) }
+        viewModelScope.launch(Dispatchers.IO) { 
+            _isSaving.value = true
+            try {
+                transactionService.deleteTransaction(transaction.id)
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _isSaving.value = false
+            }
+        }
     }
 
-    val thisMonthIncome: StateFlow<Double> = transactionDao.getTotalIncome(defaultAccountId)
+    val totalIncome: StateFlow<Double> = transactionDao.getTotalIncome(defaultAccountId)
         .combine(MutableStateFlow(0.0)) { income, _ -> income ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
-    val thisMonthExpense: StateFlow<Double> = transactionDao.getTotalExpense(defaultAccountId)
+    val totalExpense: StateFlow<Double> = transactionDao.getTotalExpense(defaultAccountId)
         .combine(MutableStateFlow(0.0)) { expense, _ -> expense ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
-    val totalBalance: StateFlow<Double> = combine(thisMonthIncome, thisMonthExpense) { income, expense ->       
+    val totalBalance: StateFlow<Double> = combine(totalIncome, totalExpense) { income, expense ->       
         income - expense
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
-    val spendingByCategory: StateFlow<List<CategorySpending>> = combine(recentTransactions, thisMonthExpense) { transactions, totalExpense ->
-        if (totalExpense <= 0) return@combine emptyList<CategorySpending>()
+    val spendingByCategory: StateFlow<List<CategorySpending>> = combine(recentTransactions, totalExpense) { transactions, expense ->
+        if (expense <= 0) return@combine emptyList<CategorySpending>()
 
         transactions
-            .filter { it.type == "Expense" }
-            .groupBy { it.category }
-            .map { (category, list) ->
+            .filter { it.type == "expense" }
+            .groupBy { it.categoryId }
+            .map { (categoryId, list) ->
                 val amount = list.sumOf { it.amount }
                 CategorySpending(
-                    category = category,
+                    category = categoryId,
                     amount = amount,
-                    percentage = (amount / totalExpense).toFloat()
+                    percentage = (amount / expense).toFloat()
                 )
             }
             .sortedByDescending { it.amount }
@@ -164,7 +174,7 @@ class WalletViewModel(
     val incomeTrends: StateFlow<List<Pair<Long, Double>>> = recentTransactions.map { transactions ->
         val thirtyDaysAgo = System.currentTimeMillis() - 30L * 24 * 60 * 60 * 1000
         val daily = mutableMapOf<Long, Double>()
-        transactions.filter { it.type == "Income" && it.date >= thirtyDaysAgo }.forEach { tx ->
+        transactions.filter { it.type == "income" && it.date >= thirtyDaysAgo }.forEach { tx ->
             val calendar = java.util.Calendar.getInstance().apply { 
                 timeInMillis = tx.date
                 set(java.util.Calendar.HOUR_OF_DAY, 0)
@@ -181,7 +191,7 @@ class WalletViewModel(
     val expenseTrends: StateFlow<List<Pair<Long, Double>>> = recentTransactions.map { transactions ->
         val thirtyDaysAgo = System.currentTimeMillis() - 30L * 24 * 60 * 60 * 1000
         val daily = mutableMapOf<Long, Double>()
-        transactions.filter { it.type == "Expense" && it.date >= thirtyDaysAgo }.forEach { tx ->
+        transactions.filter { it.type == "expense" && it.date >= thirtyDaysAgo }.forEach { tx ->
             val calendar = java.util.Calendar.getInstance().apply { 
                 timeInMillis = tx.date
                 set(java.util.Calendar.HOUR_OF_DAY, 0)
@@ -193,7 +203,7 @@ class WalletViewModel(
             daily[date] = (daily[date] ?: 0.0) + tx.amount
         }
         daily.entries.sortedBy { it.key }.map { it.key to it.value }
-    }.stateIn(viewModelScope, SharingStarted.SharingStarted.WhileSubscribed(5000), emptyList())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Goal Actions
     fun addGoal(name: String, target: Double, deadline: Long) {
@@ -202,9 +212,9 @@ class WalletViewModel(
         }
     }
 
-    fun updateGoalSavedAmount(goal: GoalEntity, newAmount: Double) {
+    fun updateGoalAmount(goal: GoalEntity, newAmount: Double) {
         viewModelScope.launch(Dispatchers.IO) {
-            goalDao.updateGoal(goal.copy(savedAmount = newAmount))
+            goalDao.updateGoal(goal.copy(currentAmount = newAmount))
         }
     }
 
@@ -215,9 +225,9 @@ class WalletViewModel(
     }
 
     // Budget Actions
-    fun addBudget(amount: Double, category: String, period: String, startDate: Long, endDate: Long) {
+    fun addBudget(amount: Double, categoryId: String, period: String, startDate: Long, endDate: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            budgetDao.insertBudget(BudgetEntity(amount = amount, category = category, period = period, startDate = startDate, endDate = endDate))
+            budgetDao.insertBudget(BudgetEntity(amount = amount, categoryId = categoryId, period = period, startDate = startDate, endDate = endDate))
         }
     }
 
@@ -226,10 +236,10 @@ class WalletViewModel(
     }
 
     // Recurring Actions
-    fun addRecurring(amount: Double, note: String, category: String, type: String, frequency: String) {
+    fun addRecurring(amount: Double, note: String, categoryId: String, type: String, frequency: String) {
         viewModelScope.launch(Dispatchers.IO) {
             recurringDao.insertRecurring(RecurringTransactionEntity(
-                amount = amount, note = note, category = category, type = type, frequency = frequency,
+                amount = amount, note = note, categoryId = categoryId, type = type, frequency = frequency,
                 accountId = defaultAccountId, nextOccurrence = System.currentTimeMillis()
             ))
         }
@@ -253,24 +263,22 @@ class WalletViewModel(
     // Account Actions
     fun addAccount(name: String, type: String, initialBalance: Double) {
         viewModelScope.launch(Dispatchers.IO) {
-            accountDao.insertAccount(AccountEntity(name = name, type = type, initialBalance = initialBalance))
+            accountDao.insertAccount(AccountEntity(name = name, type = type, initialBalance = initialBalance, balance = initialBalance))
         }
     }
 
     // Transaction Actions
-    fun addTransaction(amount: Double, note: String, category: String, isIncome: Boolean, onComplete: () -> Unit) {
+    fun addTransaction(amount: Double, note: String, categoryId: String, type: String, onComplete: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             _isSaving.value = true
             try {
-                transactionDao.insertTransaction(
-                    TransactionEntity(
-                        amount = amount,
-                        note = note,
-                        category = category,
-                        type = if (isIncome) "Income" else "Expense",
-                        accountId = defaultAccountId,
-                        date = System.currentTimeMillis()
-                    )
+                transactionService.addTransaction(
+                    amount = amount,
+                    note = note,
+                    categoryId = categoryId,
+                    type = type.lowercase(),
+                    accountId = defaultAccountId,
+                    date = System.currentTimeMillis()
                 )
                 withContext(Dispatchers.Main) { onComplete() }
             } catch (e: Exception) {
@@ -285,27 +293,14 @@ class WalletViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             _isSaving.value = true
             try {
-                // Outgoing from source account
-                transactionDao.insertTransaction(
-                    TransactionEntity(
-                        amount = amount,
-                        note = "Transfer to account: $note",
-                        category = "Transfer",
-                        type = "Expense",
-                        accountId = fromAccountId,
-                        date = System.currentTimeMillis()
-                    )
-                )
-                // Incoming to target account
-                transactionDao.insertTransaction(
-                    TransactionEntity(
-                        amount = amount,
-                        note = "Transfer from account: $note",
-                        category = "Transfer",
-                        type = "Income",
-                        accountId = toAccountId,
-                        date = System.currentTimeMillis()
-                    )
+                transactionService.addTransaction(
+                    amount = amount,
+                    note = note,
+                    type = "transfer",
+                    accountId = fromAccountId,
+                    transferAccountId = toAccountId,
+                    categoryId = "transfer",
+                    date = System.currentTimeMillis()
                 )
                 withContext(Dispatchers.Main) { onComplete() }
             } catch (e: Exception) {
@@ -319,8 +314,8 @@ class WalletViewModel(
     // Loan Actions
     fun addPerson(context: Context, name: String, photoUri: android.net.Uri? = null) {
         viewModelScope.launch(Dispatchers.IO) {
-            val photoPath = photoUri?.let { com.darkside.wallet.utils.FileUtils.saveImagePermanently(context, it) }
-            personDao.insertPerson(PersonEntity(name = name, photoPath = photoPath))
+            val avatarPath = photoUri?.let { com.darkside.wallet.utils.FileUtils.saveImagePermanently(context, it) }
+            personDao.insertPerson(PersonEntity(name = name, avatar = avatarPath))
         }
     }
 
@@ -342,14 +337,14 @@ class WalletViewModel(
         }
     }
 
-    fun toggleLoanSettled(loan: LoanEntity) {
+    fun toggleLoanActive(loan: LoanEntity) {
         viewModelScope.launch(Dispatchers.IO) {
-            loanDao.updateLoan(loan.copy(isSettled = !loan.isSettled))
+            loanDao.updateLoan(loan.copy(isActive = !loan.isActive))
         }
     }
 
     // Category Actions
-    fun addCategory(name: String, icon: String = "List") {
+    fun addCategory(name: String, icon: String = "category") {
         viewModelScope.launch(Dispatchers.IO) {
             categoryDao.insertCategory(CategoryEntity(name = name, icon = icon))
         }
@@ -373,12 +368,27 @@ class WalletViewModel(
         private val goalDao: GoalDao,
         private val recurringDao: RecurringTransactionDao,
         private val labelDao: LabelDao,
+        private val transactionService: com.darkside.wallet.data.domain.TransactionService,
+        private val performanceAuditService: com.darkside.wallet.data.domain.PerformanceAuditService,
         private val sharedPreferences: SharedPreferences
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(WalletViewModel::class.java)) {
-                return WalletViewModel(accountDao, transactionDao, categoryDao, personDao, loanDao, budgetDao, goalDao, recurringDao, labelDao, sharedPreferences) as T
+                return WalletViewModel(
+                    accountDao, transactionDao, categoryDao, personDao, loanDao, 
+                    budgetDao, goalDao, recurringDao, labelDao, 
+                    transactionService, performanceAuditService, sharedPreferences
+                ) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
+    }
+}
+ 
+                    budgetDao, goalDao, recurringDao, labelDao, 
+                    transactionService, sharedPreferences
+                ) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

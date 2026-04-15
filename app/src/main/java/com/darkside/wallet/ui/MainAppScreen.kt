@@ -45,6 +45,16 @@ fun MainAppScreen() {
     val context = LocalContext.current
     val db = remember { AppDatabase.getDatabase(context) }
     val sharedPreferences = remember { context.getSharedPreferences("wallet_prefs", Context.MODE_PRIVATE) }     
+    val transactionService = remember { 
+        com.darkside.wallet.data.domain.TransactionService(
+            db, db.transactionDao(), db.accountDao(), db.goalDao()
+        ) 
+    }
+    val performanceAuditService = remember {
+        com.darkside.wallet.data.domain.PerformanceAuditService(
+            db, db.transactionDao(), db.accountDao(), db.categoryDao()
+        )
+    }
     val viewModel: WalletViewModel = viewModel(
         factory = WalletViewModel.Factory(
             db.accountDao(),
@@ -55,7 +65,9 @@ fun MainAppScreen() {
             db.budgetDao(),
             db.goalDao(),
             db.recurringDao(),
-            db.labelDao(), // Added missing Dao
+            db.labelDao(),
+            transactionService,
+            performanceAuditService,
             sharedPreferences
         )
     )

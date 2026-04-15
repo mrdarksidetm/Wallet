@@ -64,7 +64,7 @@ fun ProfileScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Profile Photo
-            val hasValidPhoto = FileUtils.fileExists(userPhotoPath)
+            val hasValidPhoto = com.darkside.wallet.utils.FileUtils.fileExists(userPhotoPath)
             Box(
                 modifier = Modifier
                     .size(100.dp)
@@ -74,20 +74,20 @@ fun ProfileScreen(
             ) {
                 if (hasValidPhoto) {
                     AsyncImage(
-                        model = File(userPhotoPath!!),
-                        contentDescription = null,
+                        model = java.io.File(userPhotoPath!!),
+                        contentDescription = "Profile",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    Text(
-                        text = userName.take(1).uppercase(),
-                        style = MaterialTheme.typography.displaySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
