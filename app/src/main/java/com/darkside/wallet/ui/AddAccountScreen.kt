@@ -10,15 +10,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.darkside.wallet.data.entity.AccountType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAccountScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
     var name by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf("Wallet") }
+    var type by remember { mutableStateOf(AccountType.WALLET) }
     var initialBalance by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
-    val accountTypes = listOf("Wallet", "Bank", "Cash", "Credit Card")
+
+    val accountTypes = AccountType.values()
 
     Scaffold(
         topBar = {
@@ -53,7 +55,7 @@ fun AddAccountScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 OutlinedTextField(
-                    value = type,
+                    value = type.name.lowercase().replaceFirstChar { it.uppercase() },
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Account Type") },
@@ -64,11 +66,11 @@ fun AddAccountScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    accountTypes.forEach { acctType ->
+                    accountTypes.forEach { accountType ->
                         DropdownMenuItem(
-                            text = { Text(acctType) },
+                            text = { Text(accountType.name.lowercase().replaceFirstChar { it.uppercase() }) },
                             onClick = {
-                                type = acctType
+                                type = accountType
                                 expanded = false
                             }
                         )
@@ -84,11 +86,13 @@ fun AddAccountScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             )
 
+            Spacer(modifier = Modifier.weight(1f))
+
             Button(
-                onClick = { 
-                    val bal = initialBalance.toDoubleOrNull() ?: 0.0
+                onClick = {
+                    val balance = initialBalance.toDoubleOrNull() ?: 0.0
                     if (name.isNotBlank()) {
-                        viewModel.addAccount(name, type, bal)
+                        viewModel.addAccount(name, type, balance)
                         onBack()
                     }
                 },

@@ -5,11 +5,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.darkside.wallet.data.entity.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [AccountEntity::class, TransactionEntity::class, CategoryEntity::class, PersonEntity::class, LoanEntity::class, BudgetEntity::class, GoalEntity::class, RecurringTransactionEntity::class, LabelEntity::class], version = 8, exportSchema = false)
+@Database(entities = [AccountEntity::class, TransactionEntity::class, CategoryEntity::class, PersonEntity::class, LoanEntity::class, BudgetEntity::class, GoalEntity::class, RecurringEntity::class], version = 9, exportSchema = false)
 @androidx.room.TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
@@ -19,8 +20,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun loanDao(): LoanDao
     abstract fun budgetDao(): BudgetDao
     abstract fun goalDao(): GoalDao
-    abstract fun recurringDao(): RecurringTransactionDao
-    abstract fun labelDao(): LabelDao
+    abstract fun recurringDao(): RecurringDao
 
     companion object {
         @Volatile
@@ -41,16 +41,16 @@ abstract class AppDatabase : RoomDatabase() {
                         INSTANCE?.let { database ->
                             CoroutineScope(Dispatchers.IO).launch {
                                 database.accountDao().insertAccount(
-                                    AccountEntity(id = "default_cash", name = "Cash", type = "Cash", initialBalance = 0.0)
+                                    AccountEntity(name = "Cash", type = AccountType.CASH, balance = 0.0)
                                 )
                                 database.categoryDao().insertCategories(
                                     listOf(
-                                        CategoryEntity(name = "Food", icon = "restaurant"),
-                                        CategoryEntity(name = "Salary", icon = "payments"),
-                                        CategoryEntity(name = "Transport", icon = "directions_car"),
-                                        CategoryEntity(name = "Entertainment", icon = "movie"),
-                                        CategoryEntity(name = "Health", icon = "medical_services"),
-                                        CategoryEntity(name = "Other", icon = "category")
+                                        CategoryEntity(name = "Food", icon = "restaurant", type = CategoryType.EXPENSE),
+                                        CategoryEntity(name = "Salary", icon = "payments", type = CategoryType.INCOME),
+                                        CategoryEntity(name = "Transport", icon = "directions_car", type = CategoryType.EXPENSE),
+                                        CategoryEntity(name = "Entertainment", icon = "movie", type = CategoryType.EXPENSE),
+                                        CategoryEntity(name = "Health", icon = "medical_services", type = CategoryType.EXPENSE),
+                                        CategoryEntity(name = "Other", icon = "category", type = CategoryType.EXPENSE)
                                     )
                                 )
                             }
@@ -64,3 +64,4 @@ abstract class AppDatabase : RoomDatabase() {
         }
     }
 }
+

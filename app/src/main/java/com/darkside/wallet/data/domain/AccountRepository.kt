@@ -1,7 +1,7 @@
 package com.darkside.wallet.data.domain
 
 import com.darkside.wallet.data.AccountDao
-import com.darkside.wallet.data.AccountEntity
+import com.darkside.wallet.data.entity.AccountEntity
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -13,12 +13,16 @@ class AccountRepository(private val dao: AccountDao) {
         return dao.getAllAccounts()
     }
 
-    suspend fun getAccountById(id: String): AccountEntity? {
+    suspend fun getAccountById(id: Long): AccountEntity? {
         return dao.getAccountById(id)
     }
 
-    suspend fun insertAccount(account: AccountEntity) {
-        dao.insertAccount(account)
+    suspend fun getDefaultAccount(): AccountEntity? {
+        return dao.getDefaultAccount()
+    }
+
+    suspend fun insertAccount(account: AccountEntity): Long {
+        return dao.insertAccount(account)
     }
 
     suspend fun updateAccount(account: AccountEntity) {

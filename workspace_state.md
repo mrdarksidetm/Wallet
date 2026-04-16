@@ -1,20 +1,31 @@
-# Workspace State - Paisa Clone UI Task
+# Workspace State - Paisa Clone (Jetpack Compose Migration)
 
 ## Objective
-Implement the UI according to `NavigateUI.txt` and Paisa screenshots.
+Port the fully featured Flutter implementation (`Wallet-Flutter`) to the native Android Jetpack Compose implementation (`Wallet`).
 
-## Current Progress
-1. Read `NavigateUI.txt`:
-   - Bottom navigation with floating toolbars: Home, Accounts, Reports, Search (and one more maybe Settings/FAB context).
-   - Contextual FAB on the bottom right.
-   - Top Bar: App logos (left), Premium banner + "UserShape" (right). UserShape opens settings.
-   - Home Toolbar items: Budgets, Assets, Bill Splitter, Loans, Goals, Labels*, Analytics*, Recurring, Categories*, Weekly*, Places*, Person*, Calendar heatmap, Trend, Recent transactions*. (* = central systems).
-2. Started background Gradle build (`assembleDebug compileDebugSources`) to build cache.
-3. Currently analyzing `MainAppScreen.kt` and `PaisaNavGraph.kt` to update the Navigation and Scaffold.
+## Current Progress (Updated April 16, 2026)
+### Phase 1: Data Layer Parity (100%)
+- [x] Ported all Isar models to Room Entities.
+- [x] Implemented DAOs for all entities with `Long` Primary Keys.
+- [x] Fixed `RoundUpEngine.kt` to use correct Entity models and Enums.
+
+### Phase 2: State Management & ViewModels (100%)
+- [x] Synchronized `WalletViewModel.kt` with full `addTransaction` support (Transfers, People).
+- [x] Integrated `HapticEngine` for tactile feedback on success.
+- [x] Refactored `TransactionService.kt` for atomic operations.
+
+### Phase 3: UI & Navigation (95%)
+- [x] Consolidated navigation into `PaisaNavGraph.kt`.
+- [x] Implemented `AddTransactionScreen` with type switching and quick-add person.
+- [x] Polished `HomeScreen` (Atelier design tokens, removed PRO banner).
+- [x] Re-implemented `ReportsScreen` Donut Chart with sorting and animations.
+- [x] Simplified `MainAppScreen` with dynamic FAB and BottomBar.
+
+### Phase 4: Polish & Parity
+- [x] Ported "Editorial" chart logic from Flutter.
+- [x] Ensured "Freedom Policy" (All features free).
 
 ## Next Steps
-- Implement `MainAppScreen` with the new Scaffold (TopBar with UserShape, Floating BottomBar, Contextual FAB).
-- Implement Home screen grid with the 15 categories mentioned.
-- Update `SPEC.md` and `gemini.md` in both `Wallet` and `Wallet-Flutter` repos.
-- Push to GitHub.
-- Run final builds.
+- [ ] Run physical device tests to verify Haptic patterns.
+- [ ] Verify CSV/JSON Export/Import logic in `SettingsScreen`.
+- [ ] Finalize UI for `BillSplitterScreen` and `BudgetsScreen` (currently functional placeholders).

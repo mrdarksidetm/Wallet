@@ -2,17 +2,16 @@ package com.darkside.wallet.data.domain
 
 import androidx.room.withTransaction
 import com.darkside.wallet.data.*
+import com.darkside.wallet.data.entity.*
 import java.util.*
 
 /**
  * Service to handle high-level Transaction business logic.
- * Ported from Flutter TransactionService v1.4.1.
  */
 class TransactionService(
     private val database: AppDatabase,
     private val transactionDao: TransactionDao,
-    private val accountDao: AccountDao,
-    private val goalDao: GoalDao
+    private val accountDao: AccountDao
 ) {
 
     /**
@@ -21,22 +20,22 @@ class TransactionService(
     suspend fun addTransaction(
         amount: Double,
         date: Long,
-        type: String, // income, expense, transfer
-        accountId: String,
-        categoryId: String,
-        personId: String? = null,
-        note: String = "",
+        type: TransactionType,
+        accountId: Long,
+        categoryId: Long,
+        personId: Long = 0,
+        note: String? = null,
         icon: String? = null,
-        color: Int? = null,
-        transferAccountId: String? = null,
-        tags: List<String> = emptyList(),
+        color: String? = null,
+        transferAccountId: Long? = null,
+        tags: String? = null,
         isTemplate: Boolean = false
     ) {
         if (amount <= 0) throw Exception("Amount must be greater than 0")
-        if (type == "transfer" && transferAccountId == null) {
+        if (type == TransactionType.TRANSFER && transferAccountId == null) {
             throw Exception("Transfer account is required for transfers")
         }
-        if (type == "transfer" && accountId == transferAccountId) {
+        if (type == TransactionType.TRANSFER && accountId == transferAccountId) {
             throw Exception("Cannot transfer to the same account")
         }
 
@@ -63,9 +62,9 @@ class TransactionService(
 
             // 3. Update Balance
             when (type) {
-                "income" -> accountDao.updateAccount(account.copy(balance = account.balance + amount))
-                "expense" -> accountDao.updateAccount(account.copy(balance = account.balance - amount))
-                "transfer" -> {
+                TransactionType.INCOME -> accountDao.updateAccount(account.copy(balance = account.balance + amount))
+                TransactionType.EXPENSE -> accountDao.updateAccount(account.copy(balance = account.balance - amount))
+                TransactionType.TRANSFER -> {
                     val transferAcc = accountDao.getAccountById(transferAccountId!!)
                         ?: throw Exception("Transfer account not found")
                     
@@ -74,40 +73,23 @@ class TransactionService(
                 }
             }
 
-            // 4. Sync with Goals if Savings account
-            if (account.type.lowercase() == "savings") {
-                val goals = goalDao.getGoalsForAccount(accountId)
-                goals.forEach { goal ->
-                    val newAmount = when (type) {
-                        "income" -> goal.currentAmount + amount
-                        "expense" -> goal.currentAmount - amount
-                        else -> goal.currentAmount
-                    }
-                    goalDao.updateGoal(goal.copy(
-                        currentAmount = newAmount,
-                        isCompleted = newAmount >= goal.targetAmount
-                    ))
-                }
-            }
-
-            // 5. Insert Transaction
+            // 4. Insert Transaction
             transactionDao.insertTransaction(transaction)
         }
     }
 
     /**
-     * Deletes a transaction and reverts the account balance/goal changes.
+     * Deletes a transaction and reverts the account balance changes.
      */
-    suspend fun deleteTransaction(transactionId: String) {
+    suspend fun deleteTransaction(transaction: TransactionEntity) {
         database.withTransaction {
-            val transaction = transactionDao.getTransactionById(transactionId) ?: return@withTransaction
             val account = accountDao.getAccountById(transaction.accountId) ?: return@withTransaction
 
             // 1. Revert Balance
             when (transaction.type) {
-                "income" -> accountDao.updateAccount(account.copy(balance = account.balance - transaction.amount))
-                "expense" -> accountDao.updateAccount(account.copy(balance = account.balance + transaction.amount))
-                "transfer" -> {
+                TransactionType.INCOME -> accountDao.updateAccount(account.copy(balance = account.balance - transaction.amount))
+                TransactionType.EXPENSE -> accountDao.updateAccount(account.copy(balance = account.balance + transaction.amount))
+                TransactionType.TRANSFER -> {
                     val transferAcc = transaction.transferAccountId?.let { accountDao.getAccountById(it) }
                     if (transferAcc != null) {
                         accountDao.updateAccount(account.copy(balance = account.balance + transaction.amount))
@@ -116,23 +98,7 @@ class TransactionService(
                 }
             }
 
-            // 2. Revert Goal Sync
-            if (account.type.lowercase() == "savings") {
-                val goals = goalDao.getGoalsForAccount(transaction.accountId)
-                goals.forEach { goal ->
-                    val newAmount = when (transaction.type) {
-                        "income" -> goal.currentAmount - transaction.amount
-                        "expense" -> goal.currentAmount + transaction.amount
-                        else -> goal.currentAmount
-                    }
-                    goalDao.updateGoal(goal.copy(
-                        currentAmount = newAmount,
-                        isCompleted = newAmount >= goal.targetAmount
-                    ))
-                }
-            }
-
-            // 3. Delete from DB
+            // 2. Delete from DB
             transactionDao.deleteTransaction(transaction)
         }
     }
