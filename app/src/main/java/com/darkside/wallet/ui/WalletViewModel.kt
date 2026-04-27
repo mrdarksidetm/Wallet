@@ -22,6 +22,14 @@ data class CategorySpending(
     val color: String
 )
 
+@Immutable
+data class BudgetWithProgress(
+    val budget: BudgetEntity,
+    val category: CategoryEntity?,
+    val spent: Double,
+    val progress: Float
+)
+
 class WalletViewModel(
     private val accountRepository: AccountRepository,
     private val transactionRepository: TransactionRepository,
@@ -71,6 +79,21 @@ class WalletViewModel(
 
     val budgets: StateFlow<List<BudgetEntity>> = budgetRepository.getAllBudgets()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val budgetProgress: StateFlow<List<BudgetWithProgress>> = combine(budgets, recentTransactions, categories) { budgetList, transactions, cats ->
+        budgetList.map { budget ->
+            val spent = transactions
+                .filter { it.categoryId == budget.categoryId && it.type == TransactionType.EXPENSE && it.date >= budget.startDate }
+                .sumOf { it.amount }
+            val progress = if (budget.amount > 0) (spent / budget.amount).toFloat() else 0f
+            BudgetWithProgress(
+                budget = budget,
+                category = cats.find { it.id == budget.categoryId },
+                spent = spent,
+                progress = progress
+            )
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val goals: StateFlow<List<GoalEntity>> = goalRepository.getAllGoals()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -162,9 +185,35 @@ class WalletViewModel(
         }
     }
 
+    fun addBudget(amount: Double, categoryId: Long, period: BudgetPeriod) {
+        viewModelScope.launch(Dispatchers.IO) {
+            budgetRepository.insertBudget(
+                BudgetEntity(
+                    amount = amount,
+                    categoryId = categoryId,
+                    period = period
+                )
+            )
+        }
+    }
+
+    fun deleteBudget(budget: BudgetEntity) {
+        viewModelScope.launch(Dispatchers.IO) {
+            budgetRepository.deleteBudget(budget)
+        }
+    }
+
     fun addLoan(personId: Long, amount: Double, type: LoanType, note: String?) {
         viewModelScope.launch(Dispatchers.IO) {
             loanRepository.insertLoan(LoanEntity(personId = personId, amount = amount, type = type, note = note))
+        }
+    }
+
+    fun addLoans(personIds: List<Long>, amount: Double, type: LoanType, note: String?) {
+        viewModelScope.launch(Dispatchers.IO) {
+            personIds.forEach { personId ->
+                loanRepository.insertLoan(LoanEntity(personId = personId, amount = amount, type = type, note = note))
+            }
         }
     }
 

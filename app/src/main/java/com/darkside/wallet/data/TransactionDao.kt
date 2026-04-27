@@ -10,6 +10,9 @@ interface TransactionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTransaction(transaction: TransactionEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertTransactionSync(transaction: TransactionEntity): Long
+
     @Update
     suspend fun updateTransaction(transaction: TransactionEntity)
 
@@ -39,4 +42,13 @@ interface TransactionDao {
 
     @Query("SELECT * FROM transactions WHERE isArchived = 0 AND isDeleted = 0 ORDER BY date DESC LIMIT :limit")
     fun getRecentTransactions(limit: Int): Flow<List<TransactionEntity>>
+
+    @Query("SELECT * FROM transactions WHERE isArchived = 0 AND isDeleted = 0 ORDER BY date DESC LIMIT :limit")
+    fun getRecentTransactionsSync(limit: Int): List<TransactionEntity>
+
+    @Query("SELECT * FROM transactions WHERE type = :type AND isArchived = 0 AND isDeleted = 0")
+    fun getTransactionsByTypeSync(type: TransactionType): List<TransactionEntity>
+
+    @Query("SELECT SUM(amount) FROM transactions WHERE isDeleted = 0")
+    fun getTotalAmountSync(): Double
 }

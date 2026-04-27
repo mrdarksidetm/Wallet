@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -68,7 +69,7 @@ fun AssetsScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
                 ) {
                     ListItem(
                         headlineContent = { Text(account.name, fontWeight = FontWeight.Bold) },
-                        supportingContent = { Text(account.type) },
+                        supportingContent = { Text(account.type.name) },
                         leadingContent = {
                             Box(
                                 modifier = Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
@@ -78,7 +79,7 @@ fun AssetsScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
                             }
                         },
                         trailingContent = {
-                            Text(formatter.format(account.initialBalance), fontWeight = FontWeight.Bold)
+                            Text(formatter.format(account.balance), fontWeight = FontWeight.Bold)
                         }
                     )
                 }

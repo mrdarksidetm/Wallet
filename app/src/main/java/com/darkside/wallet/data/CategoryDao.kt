@@ -10,6 +10,9 @@ interface CategoryDao {
     @Query("SELECT * FROM categories WHERE isDeleted = 0")
     fun getAllCategories(): Flow<List<CategoryEntity>>
 
+    @Query("SELECT * FROM categories WHERE isDeleted = 0")
+    suspend fun getAllCategoriesOnce(): List<CategoryEntity>
+
     @Query("SELECT * FROM categories WHERE type = :type AND isDeleted = 0")
     fun getCategoriesByType(type: CategoryType): Flow<List<CategoryEntity>>
 

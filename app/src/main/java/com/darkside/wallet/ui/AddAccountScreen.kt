@@ -16,7 +16,7 @@ import com.darkside.wallet.data.entity.AccountType
 @Composable
 fun AddAccountScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
     var name by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf(AccountType.WALLET) }
+    var type by remember { mutableStateOf(AccountType.CASH) }
     var initialBalance by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
 

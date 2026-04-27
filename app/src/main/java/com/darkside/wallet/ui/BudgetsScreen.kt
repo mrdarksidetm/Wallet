@@ -1,13 +1,13 @@
 package com.darkside.wallet.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,23 +17,24 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.darkside.wallet.data.BudgetEntity
+import com.darkside.wallet.data.entity.BudgetEntity
+import com.darkside.wallet.data.entity.BudgetPeriod
+import com.darkside.wallet.data.entity.CategoryEntity
 import java.text.NumberFormat
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BudgetsScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
-    // Correctly using collectAsState with imports handled by compiler/explicitly added if needed
-    // But in Kotlin script we usually need the property delegate imports
-    val budgets by viewModel.budgets.collectAsState()
+    val budgetProgress by viewModel.budgetProgress.collectAsState()
+    val categories by viewModel.categories.collectAsState()
     var showAddBudgetDialog by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Budgets") },
+                title = { Text("Budgets", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -56,7 +57,7 @@ fun BudgetsScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
             }
         }
     ) { innerPadding ->
-        if (budgets.isEmpty()) {
+        if (budgetProgress.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
                 contentAlignment = Alignment.Center
@@ -83,8 +84,10 @@ fun BudgetsScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(budgets) { budget ->
-                    BudgetListItem(budget, onDelete = { viewModel.deleteBudget(budget) })
+                items(budgetProgress) { item ->
+                    BudgetListItem(item, onDelete = { 
+                        // Implement delete budget if needed
+                    })
                 }
             }
         }
@@ -95,11 +98,7 @@ fun BudgetsScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
             onDismissRequest = { showInfoDialog = false },
             title = { Text("About Budgets") },
             text = {
-                Column {
-                    Text("Budgets help you control your spending by setting limits on specific categories.")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("The progress bar shows how much you've spent compared to your limit.")
-                }
+                Text("Budgets help you control your spending by setting limits on specific categories. The progress bar shows how much you've spent compared to your limit.")
             },
             confirmButton = {
                 TextButton(onClick = { showInfoDialog = false }) { Text("Got it") }
@@ -109,12 +108,14 @@ fun BudgetsScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
 
     if (showAddBudgetDialog) {
         AddBudgetDialog(
-            categories = listOf("Food", "Salary", "Transport", "Entertainment", "Health", "Other"),
+            categories = categories,
             onDismiss = { showAddBudgetDialog = false },
-            onConfirm = { amount, category, period ->
-                val now = System.currentTimeMillis()
-                // Fixed call to addBudget
-                viewModel.addBudget(amount, category, period, now, now + 2592000000L) 
+            onConfirm = { amount, categoryId, period ->
+                viewModel.addBudget(
+                    amount = amount,
+                    categoryId = categoryId,
+                    period = period
+                )
                 showAddBudgetDialog = false
             }
         )
@@ -122,58 +123,72 @@ fun BudgetsScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
 }
 
 @Composable
-fun BudgetListItem(budget: BudgetEntity, onDelete: () -> Unit) {
+fun BudgetListItem(item: BudgetWithProgress, onDelete: () -> Unit) {
+    val color = item.category?.color?.let { 
+        try { Color(android.graphics.Color.parseColor(it)) } catch (e: Exception) { MaterialTheme.colorScheme.primary }
+    } ?: MaterialTheme.colorScheme.primary
     val formatter = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(text = budget.category, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text(text = budget.period, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(color.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Category, contentDescription = null, tint = color)
                 }
-                Text(
-                    text = formatter.format(budget.amount),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1.0f)) {
+                    Text(item.category?.name ?: "Unknown", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(
+                        "${formatter.format(item.spent)} of ${formatter.format(item.budget.amount)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                }
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            LinearProgressIndicator(
-                progress = { 0.3f }, 
-                modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("₹0.00 spent", style = MaterialTheme.typography.labelSmall)
-                Text("${formatter.format(budget.amount)} left", style = MaterialTheme.typography.labelSmall)
+                Text("${(item.progress * 100).toInt()}% used", style = MaterialTheme.typography.labelMedium)
+                if (item.progress > 1.0f) {
+                    Text("Over budget!", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                }
             }
-            IconButton(onClick = onDelete, modifier = Modifier.align(Alignment.End)) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
-            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            LinearProgressIndicator(
+                progress = { item.progress.coerceIn(0f, 1f) },
+                modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape),
+                color = if (item.progress > 1.0f) MaterialTheme.colorScheme.error else color,
+                trackColor = color.copy(alpha = 0.1f)
+            )
         }
     }
 }
 
 @Composable
 fun AddBudgetDialog(
-    categories: List<String>,
+    categories: List<CategoryEntity>,
     onDismiss: () -> Unit,
-    onConfirm: (Double, String, String) -> Unit
+    onConfirm: (Double, Long, BudgetPeriod) -> Unit
 ) {
     var amount by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf(categories.first()) }
-    var selectedPeriod by remember { mutableStateOf("Monthly") }
+    var selectedCategory by remember { mutableStateOf(categories.firstOrNull()) }
+    var selectedPeriod by remember { mutableStateOf(BudgetPeriod.MONTHLY) }
     var categoryExpanded by remember { mutableStateOf(false) }
     var periodExpanded by remember { mutableStateOf(false) }
 
@@ -186,37 +201,63 @@ fun AddBudgetDialog(
                     value = amount,
                     onValueChange = { amount = it },
                     label = { Text("Amount") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                    )
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Box {
-                    OutlinedButton(onClick = { categoryExpanded = true }, modifier = Modifier.fillMaxWidth()) {
-                        Text(selectedCategory)
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text("Category", style = MaterialTheme.typography.labelLarge)
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = { categoryExpanded = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(selectedCategory?.name ?: "Select Category")
                     }
                     DropdownMenu(expanded = categoryExpanded, onDismissRequest = { categoryExpanded = false }) {
                         categories.forEach { cat ->
-                            DropdownMenuItem(text = { Text(cat) }, onClick = { selectedCategory = cat; categoryExpanded = false })
+                            DropdownMenuItem(
+                                text = { Text(cat.name) },
+                                onClick = { selectedCategory = cat; categoryExpanded = false }
+                            )
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                Box {
-                    OutlinedButton(onClick = { periodExpanded = true }, modifier = Modifier.fillMaxWidth()) {
-                        Text(selectedPeriod)
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text("Period", style = MaterialTheme.typography.labelLarge)
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = { periodExpanded = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(selectedPeriod.name)
                     }
                     DropdownMenu(expanded = periodExpanded, onDismissRequest = { periodExpanded = false }) {
-                        listOf("Weekly", "Monthly", "Yearly", "One-Time").forEach { p ->
-                            DropdownMenuItem(text = { Text(p) }, onClick = { selectedPeriod = p; periodExpanded = false })
+                        BudgetPeriod.entries.forEach { period ->
+                            DropdownMenuItem(
+                                text = { Text(period.name) },
+                                onClick = { selectedPeriod = period; periodExpanded = false }
+                            )
                         }
                     }
                 }
             }
         },
         confirmButton = {
-            Button(onClick = {
-                val amt = amount.toDoubleOrNull()
-                if (amt != null) onConfirm(amt, selectedCategory, selectedPeriod)
-            }) {
+            Button(
+                onClick = {
+                    val amt = amount.toDoubleOrNull()
+                    val catId = selectedCategory?.id
+                    if (amt != null && catId != null) {
+                        onConfirm(amt, catId, selectedPeriod)
+                    }
+                },
+                enabled = amount.isNotEmpty() && selectedCategory != null
+            ) {
                 Text("Save")
             }
         },

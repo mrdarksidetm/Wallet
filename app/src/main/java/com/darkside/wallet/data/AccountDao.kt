@@ -9,6 +9,9 @@ interface AccountDao {
     @Query("SELECT * FROM accounts ORDER BY `order` ASC")
     fun getAllAccounts(): Flow<List<AccountEntity>>
 
+    @Query("SELECT * FROM accounts ORDER BY `order` ASC")
+    suspend fun getAllAccountsOnce(): List<AccountEntity>
+
     @Query("SELECT * FROM accounts WHERE isDefault = 1 LIMIT 1")
     suspend fun getDefaultAccount(): AccountEntity?
 

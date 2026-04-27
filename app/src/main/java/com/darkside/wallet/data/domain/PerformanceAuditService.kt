@@ -1,6 +1,7 @@
 package com.darkside.wallet.data.domain
 
 import com.darkside.wallet.data.*
+import com.darkside.wallet.data.entity.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -37,7 +38,7 @@ class PerformanceAuditService(
             TransactionEntity(
                 amount = (i + 1) * 1.5,
                 date = System.currentTimeMillis() - (i * 60 * 1000),
-                type = if (i % 2 == 0) "expense" else "income",
+                type = if (i % 2 == 0) TransactionType.EXPENSE else TransactionType.INCOME,
                 accountId = accountId,
                 categoryId = categoryId,
                 note = "Audit Tx #$i"
@@ -61,7 +62,7 @@ class PerformanceAuditService(
 
         // 5. Measure Query Time (All Expenses)
         val queryExpensesTime = measureTimeMillis {
-            val expenses = transactionDao.getTransactionsByTypeSync("expense")
+            val expenses = transactionDao.getTransactionsByTypeSync(TransactionType.EXPENSE)
             results["expense_count"] = expenses.size
         }
         results["query_all_expenses_ms"] = queryExpensesTime

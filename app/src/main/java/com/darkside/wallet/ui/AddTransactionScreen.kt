@@ -10,6 +10,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.darkside.wallet.data.entity.*
@@ -18,6 +20,7 @@ import com.darkside.wallet.data.domain.CurrencyEngine
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTransactionScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
+    val context = LocalContext.current
     var amount by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var transactionType by remember { mutableStateOf(TransactionType.EXPENSE) }
