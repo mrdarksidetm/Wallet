@@ -29,7 +29,28 @@ jobs:
       - name: Make Gradle Wrapper Executable
         run: chmod +x ./gradlew
 
-      - name: Run Unit Tests
+      - name: Run Unit Tests & Capture Diagnostics
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096m"
-        run: ./gradlew testDebugUnitTest --continue
+        run: |
+          mkdir -p build_logs
+          ./gradlew testDebugUnitTest --stacktrace --info > build_logs/gradle_test_output.txt 2>&1 || true
+          cat build_logs/gradle_test_output.txt | tail -n 100
+          find app/build/reports app/build/test-results -type f -exec cp {} build_logs/ \; 2>/dev/null || true
+
+      - name: Upload Test and Build Diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-diagnostics
+          path: build_logs/
+          retention-days: 7
+
+      - name: Enforce Test Success
+        run: |
+          if grep -q "BUILD SUCCESSFUL" build_logs/gradle_test_output.txt; then
+            echo "CI Tests Passed Successfully!"
+          else
+            echo "CI Tests Failed!"
+            exit 1
+          fi
