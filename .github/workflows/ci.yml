@@ -35,7 +35,12 @@ jobs:
         run: |
           mkdir -p build_logs
           ./gradlew testDebugUnitTest --stacktrace --info > build_logs/gradle_test_output.txt 2>&1 || true
-          cat build_logs/gradle_test_output.txt | tail -n 100
+          echo "=== COMPILER ERRORS ==="
+          grep -n -C 3 "e: " build_logs/gradle_test_output.txt || true
+          echo "=== FAILURES & STACKTRACES ==="
+          grep -n -C 5 "FAILURE:" build_logs/gradle_test_output.txt || true
+          echo "=== CAUSED BY ==="
+          grep -n -C 5 "Caused by:" build_logs/gradle_test_output.txt || true
           find app/build/reports app/build/test-results -type f -exec cp {} build_logs/ \; 2>/dev/null || true
 
       - name: Upload Test and Build Diagnostics
