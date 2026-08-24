@@ -129,33 +129,18 @@ fun MainAppScreen() {
                     )
                 }
             } else if (isExpressiveActive) {
-                // Material 3 Expressive Dynamic Toolbar
-                HorizontalFloatingToolbar(
-                    expanded = true,
-                    modifier = Modifier.padding(bottom = 16.dp),
-                    colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
-                        toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
-                    floatingActionButton = {
-                        if (currentDestination in listOf("home", "accounts")) {
-                            FloatingActionButton(
-                                onClick = {
-                                    viewModel.clearError()
-                                    if (currentDestination == "home") navController.navigate("add_transaction") 
-                                    else navController.navigate("add_account")
-                                },
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = Color.White,
-                                elevation = FloatingActionButtonDefaults.elevation()
-                            ) {
-                                Icon(
-                                    if (currentDestination == "home") Icons.Default.Add else Icons.Default.AccountBalanceWallet,
-                                    contentDescription = "Add"
-                                )
-                            }
-                        }
-                    },
-                    content = {
+                Surface(
+                    shape = RoundedCornerShape(28.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    tonalElevation = 6.dp,
+                    shadowElevation = 8.dp,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         val navItems = listOf("home", "accounts", "reports", "people", "search")
                         val navIcons = listOf(Icons.Default.Home, Icons.Default.AccountBalanceWallet, Icons.Default.PieChart, Icons.Default.Group, Icons.Default.Search)
 
@@ -163,7 +148,7 @@ fun MainAppScreen() {
                             IconButton(
                                 onClick = {
                                     navController.navigate(item) {
-                                        popUpTo(navController.graph.startDestinationId) { saveState = true }    
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
                                         launchSingleTop = true
                                         restoreState = true
                                     }
@@ -176,8 +161,27 @@ fun MainAppScreen() {
                                 )
                             }
                         }
+
+                        if (currentDestination in listOf("home", "accounts")) {
+                            FloatingActionButton(
+                                onClick = {
+                                    viewModel.clearError()
+                                    if (currentDestination == "home") navController.navigate("add_transaction")
+                                    else navController.navigate("add_account")
+                                },
+                                shape = RoundedCornerShape(20.dp),
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = Color.White,
+                                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp)
+                            ) {
+                                Icon(
+                                    if (currentDestination == "home") Icons.Default.Add else Icons.Default.AccountBalanceWallet,
+                                    contentDescription = "Add"
+                                )
+                            }
+                        }
                     }
-                )
+                }
             }
         }
     ) { innerPadding ->

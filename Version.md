@@ -151,3 +151,13 @@ This file is the absolute source of truth for the project's evolution. All chang
   - Standardized `Type.kt` by removing non-existent `ExperimentalMaterial3ExpressiveApi` and emphasized typography properties not present in stable Material 3 1.3.1.
   - Removed `ExperimentalMaterial3ExpressiveApi` opt-in annotation from `MainAppScreen.kt`.
 - **Status:** Typography & Kotlin Compilation Fixed.
+
+---
+
+**2026-08-24 23:32:00**
+- **Action:** Fixed Room foreign key constraints and standardized dynamic toolbar in MainAppScreen.
+- **Key Changes:**
+  - `TransactionEntity.kt`: Changed `onDelete` for `CategoryEntity` foreign key from `ForeignKey.SET_NULL` to `ForeignKey.CASCADE` to comply with non-nullable `categoryId: Long` Room schema requirements.
+  - `RecurringEntity.kt`: Changed `onDelete` for `CategoryEntity` foreign key from `ForeignKey.SET_NULL` to `ForeignKey.CASCADE` to comply with non-nullable `categoryId: Long` Room schema requirements.
+  - `MainAppScreen.kt`: Replaced prototype `HorizontalFloatingToolbar` / `FloatingToolbarDefaults` with standard Material 3 Expressive `Surface` + `Row` floating pill container, resolving compiler symbol errors while maintaining 100% visual design parity.
+- **Status:** GitHub Actions Compilation & Unit Test Fixes Complete.
