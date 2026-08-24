@@ -34,7 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "wallet_database"
                 )
-                .fallbackToDestructiveMigration(dropAllTables = true)
+                .fallbackToDestructiveMigration()
                 .addCallback(object : Callback() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)

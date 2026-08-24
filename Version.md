@@ -125,3 +125,11 @@ This file is the absolute source of truth for the project's evolution. All chang
   - Removed invalid `initWith(getByName("debug"))` on `SigningConfig` and dynamically routed `buildTypes.release.signingConfig` to `debug` signing when keystore secrets are unconfigured.
   - Added `testOptions { unitTests.isReturnDefaultValues = true }` in `app/build.gradle.kts`.
 - **Status:** Release Signing & Test Options Finalized.
+
+---
+
+**2026-08-24 20:34:00**
+- **Action:** Fixed Room fallbackToDestructiveMigration method signature.
+- **Changes:**
+  - Removed unsupported argument `dropAllTables = true` from `Room.databaseBuilder(...).fallbackToDestructiveMigration()` in `AppDatabase.kt`.
+- **Status:** Database Builder Syntax Corrected.
