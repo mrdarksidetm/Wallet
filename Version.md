@@ -87,3 +87,15 @@ This file is the absolute source of truth for the project's evolution. All chang
   - Updated `app/build.gradle.kts` release signing config to gracefully `initWith(getByName("debug"))` when no external release keystore is provided.
   - Streamlined `.github/workflows/build_apks.yml` with direct multi-target Gradle invocation (`assembleDebug assembleRelease`) and high-memory CI arguments (`-Xmx4096m`).
 - **Status:** CI/CD Workflow Optimized & Verified.
+
+---
+
+**2026-08-24 19:40:00**
+- **Action:** Fixed CI/CD Android build failure and unconfigured secrets fallback for `Wallet/main`.
+- **Key Fixes:**
+  - Standardized dependency and build tool versions in `gradle/libs.versions.toml` to verified compatible coordinates: Android Gradle Plugin (`8.7.3`), Kotlin (`2.0.21`), KSP (`2.0.21-1.0.28`), Room (`2.6.1`), Material 3 (`1.3.1`).
+  - Added `alias(libs.plugins.jetbrains.kotlin.android)` plugin to root and app module `build.gradle.kts` files.
+  - Updated Gradle wrapper to verified release distribution `gradle-8.11.1-bin.zip` in `gradle/wrapper/gradle-wrapper.properties`.
+  - Configured graceful unconfigured secret fallback in `.github/workflows/build_apks.yml` to prevent 0-byte keystore corruption and avoid invalid workflow `if` expressions.
+  - Updated `app/build.gradle.kts` release signing configuration to verify keystore non-empty byte length before attempting custom signing, safely falling back to debug keystore when secrets are unconfigured.
+- **Status:** CI/CD Build Pipeline Fixed & Unconfigured Secrets Fallback Ready.

@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.compose)
 }
@@ -32,8 +33,9 @@ android {
             val keyAliasName = System.getenv("KEY_ALIAS")
             val keyPass = System.getenv("KEY_PASSWORD")
 
-            if (!storePass.isNullOrEmpty() && file(keystorePath).exists()) {
-                storeFile = file(keystorePath)
+            val keystoreFile = file(keystorePath)
+            if (!storePass.isNullOrEmpty() && keystoreFile.exists() && keystoreFile.length() > 0) {
+                storeFile = keystoreFile
                 storePassword = storePass
                 keyAlias = keyAliasName
                 keyPassword = keyPass
