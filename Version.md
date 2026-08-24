@@ -107,3 +107,12 @@ This file is the absolute source of truth for the project's evolution. All chang
   - Removed stray `app/src/main/java/com/google/io/MainActivity.kt` referencing experimental non-existent M3 expressive APIs.
   - Added unit test suite [`WalletUnitTest.kt`](file:///D:/code/Wallet/main/app/src/test/java/com/darkside/wallet/WalletUnitTest.kt) to validate CurrencyEngine formatting during CI test runs.
 - **Status:** Cleaned up stray files and added CI unit test coverage.
+
+---
+
+**2026-08-24 20:25:00**
+- **Action:** Cleaned up catalog dependencies and let Compose BOM manage Material 3 versions.
+- **Changes:**
+  - Removed unused Vico library declarations from `gradle/libs.versions.toml` and `app/build.gradle.kts`.
+  - Removed explicit version reference on `androidx-material3` to let Compose BOM (`2024.10.01`) manage compatible UI versions automatically.
+- **Status:** Dependencies Optimized.
