@@ -116,3 +116,12 @@ This file is the absolute source of truth for the project's evolution. All chang
   - Removed unused Vico library declarations from `gradle/libs.versions.toml` and `app/build.gradle.kts`.
   - Removed explicit version reference on `androidx-material3` to let Compose BOM (`2024.10.01`) manage compatible UI versions automatically.
 - **Status:** Dependencies Optimized.
+
+---
+
+**2026-08-24 20:30:00**
+- **Action:** Refined release signing config fallback and added testOptions.
+- **Changes:**
+  - Removed invalid `initWith(getByName("debug"))` on `SigningConfig` and dynamically routed `buildTypes.release.signingConfig` to `debug` signing when keystore secrets are unconfigured.
+  - Added `testOptions { unitTests.isReturnDefaultValues = true }` in `app/build.gradle.kts`.
+- **Status:** Release Signing & Test Options Finalized.

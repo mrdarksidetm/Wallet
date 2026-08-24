@@ -39,8 +39,6 @@ android {
                 storePassword = storePass
                 keyAlias = keyAliasName
                 keyPassword = keyPass
-            } else {
-                initWith(getByName("debug"))
             }
         }
     }
@@ -49,7 +47,8 @@ android {
         release {
             isMinifyEnabled = false
             isShrinkResources = false
-            signingConfig = signingConfigs.getByName("release")
+            val releaseSigning = signingConfigs.getByName("release")
+            signingConfig = if (releaseSigning.storeFile != null) releaseSigning else signingConfigs.getByName("debug")
         }
         debug {
             isDebuggable = true
@@ -62,6 +61,9 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
     }
     packaging {
         resources {
