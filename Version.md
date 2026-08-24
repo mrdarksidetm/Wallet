@@ -142,3 +142,12 @@ This file is the absolute source of truth for the project's evolution. All chang
   - Updated `getTotalAmountSync()` in `TransactionDao.kt` to return `Double?` matching SQLite `SUM` behavior, and updated `PerformanceAuditService.kt`.
   - Split APK assembly in `build_apks.yml` into granular `assembleDebug` and `assembleRelease` stages for clear build tracking.
 - **Status:** DAO & CI Pipeline Refined.
+
+---
+
+**2026-08-24 20:52:00**
+- **Action:** Fixed Material 3 Typography and removed prototype expressive API imports.
+- **Changes:**
+  - Standardized `Type.kt` by removing non-existent `ExperimentalMaterial3ExpressiveApi` and emphasized typography properties not present in stable Material 3 1.3.1.
+  - Removed `ExperimentalMaterial3ExpressiveApi` opt-in annotation from `MainAppScreen.kt`.
+- **Status:** Typography & Kotlin Compilation Fixed.

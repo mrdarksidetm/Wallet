@@ -20,7 +20,7 @@ import com.darkside.wallet.data.AppDatabase
 import com.darkside.wallet.data.domain.*
 import com.darkside.wallet.ui.navigation.WalletNavGraph
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainAppScreen() {
     val context = LocalContext.current
