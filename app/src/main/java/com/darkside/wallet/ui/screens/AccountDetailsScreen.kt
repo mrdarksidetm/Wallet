@@ -30,6 +30,13 @@ import com.darkside.wallet.ui.components.TransactionGroupedList
 import com.darkside.wallet.ui.settings.SectionHeaderTitle
 import com.darkside.wallet.ui.theme.parseHexColor
 
+data class AccountCategoryBreakdown(
+    val name: String,
+    val amount: Double,
+    val fraction: Float,
+    val color: Color
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountDetailsScreen(
@@ -64,9 +71,9 @@ fun AccountDetailsScreen(
                 .mapNotNull { (catId, txs) ->
                     val cat = categories.find { it.id == catId } ?: return@mapNotNull null
                     val sum = txs.sumOf { it.amount }
-                    Triple(cat.name, sum, (sum / totalExpense).toFloat(), cat.color.parseHexColor())
+                    AccountCategoryBreakdown(cat.name, sum, (sum / totalExpense).toFloat(), cat.color.parseHexColor())
                 }
-                .sortedByDescending { it.second }
+                .sortedByDescending { it.amount }
         }
     }
 

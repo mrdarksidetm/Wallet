@@ -161,3 +161,13 @@ This file is the absolute source of truth for the project's evolution. All chang
   - `RecurringEntity.kt`: Changed `onDelete` for `CategoryEntity` foreign key from `ForeignKey.SET_NULL` to `ForeignKey.CASCADE` to comply with non-nullable `categoryId: Long` Room schema requirements.
   - `MainAppScreen.kt`: Replaced prototype `HorizontalFloatingToolbar` / `FloatingToolbarDefaults` with standard Material 3 Expressive `Surface` + `Row` floating pill container, resolving compiler symbol errors while maintaining 100% visual design parity.
 - **Status:** GitHub Actions Compilation & Unit Test Fixes Complete.
+
+---
+
+**2026-08-24 23:38:00**
+- **Action:** Fixed Kotlin compilation references and data model types for CI verification.
+- **Key Changes:**
+  - `MainAppScreen.kt`: Added missing `androidx.compose.ui.Alignment` import for floating toolbar alignment.
+  - `AccountDetailsScreen.kt`: Created `AccountCategoryBreakdown` model class replacing invalid 4-argument `Triple` constructor and destructuring calls.
+  - `AboutScreen.kt`: Added missing `androidx.compose.ui.graphics.Color` import for update dialog icon tint.
+- **Status:** Compiler Errors Resolved & Ready for CI Build.
