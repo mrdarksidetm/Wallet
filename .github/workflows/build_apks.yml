@@ -36,7 +36,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Decode Release Keystore
-        if: "${{ secrets.KEYSTORE_BASE64 != '' }}"
+        if: secrets.KEYSTORE_BASE64 != ''
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
@@ -46,8 +46,7 @@ jobs:
       - name: Build All APKs (Debug & Release)
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m"
-          KEYSTORE_PATH: ${{ env.KEYSTORE_PATH || 'release.jks' }}
-          STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || secrets.STORE_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleDebug assembleRelease --no-daemon --stacktrace
