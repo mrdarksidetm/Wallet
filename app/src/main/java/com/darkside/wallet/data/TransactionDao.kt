@@ -50,5 +50,5 @@ interface TransactionDao {
     fun getTransactionsByTypeSync(type: TransactionType): List<TransactionEntity>
 
     @Query("SELECT SUM(amount) FROM transactions WHERE isDeleted = 0")
-    fun getTotalAmountSync(): Double
+    fun getTotalAmountSync(): Double?
 }

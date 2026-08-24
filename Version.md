@@ -133,3 +133,12 @@ This file is the absolute source of truth for the project's evolution. All chang
 - **Changes:**
   - Removed unsupported argument `dropAllTables = true` from `Room.databaseBuilder(...).fallbackToDestructiveMigration()` in `AppDatabase.kt`.
 - **Status:** Database Builder Syntax Corrected.
+
+---
+
+**2026-08-24 20:44:00**
+- **Action:** Made TransactionDao sum aggregation return nullable and separated build steps.
+- **Changes:**
+  - Updated `getTotalAmountSync()` in `TransactionDao.kt` to return `Double?` matching SQLite `SUM` behavior, and updated `PerformanceAuditService.kt`.
+  - Split APK assembly in `build_apks.yml` into granular `assembleDebug` and `assembleRelease` stages for clear build tracking.
+- **Status:** DAO & CI Pipeline Refined.

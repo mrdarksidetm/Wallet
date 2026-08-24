@@ -69,7 +69,7 @@ class PerformanceAuditService(
 
         // 6. Measure Aggregation Time (Sum)
         val aggregationTime = measureTimeMillis {
-            val total = transactionDao.getTotalAmountSync()
+            val total = transactionDao.getTotalAmountSync() ?: 0.0
             results["total_sum"] = total
         }
         results["aggregation_sum_ms"] = aggregationTime
