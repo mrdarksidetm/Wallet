@@ -9,7 +9,7 @@ This is the **Single Source of Truth** for the Project Wallet (Jetpack Compose) 
 *   **Project Name**: Wallet (Jetpack Compose) 🏦
 *   **Package Name**: `com.darkside.wallet` 📦
 *   **Version**: 1.0.0 ("The Native Stitch") 💎
-*   **Target SDK**: Android 14+ (API 34) 🤖
+*   **Target SDK**: Android 15 (API 35) 🤖
 *   **Design Language**: Material 3 Expressive (Editorial Style) 🎨
 *   **Core Mandate**: Offline-first, Privacy-centric, High-Performance (60-120 FPS). ⚡
 
@@ -63,6 +63,8 @@ This is the **Single Source of Truth** for the Project Wallet (Jetpack Compose) 
 - [x] UUID-based Primary Keys (Sync-ready). ✅
 - [x] Basic Transaction CRUD. ✅
 - [x] Account-aware balance calculations. ✅
+- [x] Local Crash Log Export (Zero-Network). ✅
+- [x] Safe Runtime Fixer (UI Error Boundary). ✅
 
 ### **Home & UI**
 - [x] Material 3 Home Screen with "Stitch" style. ✅
@@ -71,10 +73,14 @@ This is the **Single Source of Truth** for the Project Wallet (Jetpack Compose) 
 - [x] **New**: PRO/Premium visual badges. ✅
 
 ### **Parity Backlog (To-Do)**
-- [ ] Advanced Charts (Line/Donut parity). 📊
-- [ ] Bill Splitter & People integration. 👥
-- [ ] Goals & Budgets modules. 🎯
-- [ ] Recurring transactions engine. 🔄
+- [x] Advanced Charts (Line/Donut parity). 📊
+- [x] Bill Splitter & People integration (PeopleScreen finalized). 👥
+- [x] Goals & Budgets modules. 🎯
+- [x] Recurring transactions engine. 🔄
+- [x] CSV Export/Import logic. 📂
+- [x] JSON Export/Import logic (Full Portability). 📂
+- [x] Native Performance Optimization (Lifecycle-aware). ⚡
+- [x] Native Android Splash Screen. 🚀
 
 ---
 
@@ -84,6 +90,7 @@ This is the **Single Source of Truth** for the Project Wallet (Jetpack Compose) 
 - **State Management**: Kotlin StateFlow & CollectAsStateWithLifecycle. ⚡
 - **Database**: Room (SQLite) with Coroutines & Flow. 💾
 - **DI**: Manual Injection (ViewModelProviders) for efficiency. ⚙️
+- **Platform**: Antigravity Migration Readiness (CLI v1.0.0 verified). 🚀
 
 ---
 *SPEC maintained by the Wallet Core Team.* 💼

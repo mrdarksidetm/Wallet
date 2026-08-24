@@ -11,24 +11,23 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.darkside.wallet.ui.WalletViewModel
 
 /**
  * SearchScreen using Material 3 SearchBar.
- * 
- * Architecture & State Flow:
- * 1. The user types into the M3 SearchBar.
- * 2. The `query` state updates and triggers a recomposition.
- * 3. In a full MVVM setup, this `query` string would be pushed to the ViewModel 
- *    (e.g. `viewModel.updateSearchQuery(query)`), which filters the Room Flow.
- * 4. The filtered list is collected back into the UI and passed to the `LazyColumn`.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen() {
+fun SearchScreen(
+    viewModel: WalletViewModel,
+    onBack: () -> Unit
+) {
     var query by remember { mutableStateOf("") }
     var active by remember { mutableStateOf(false) }
     
-    // Placeholder data. In production, collect this from ViewModel Flow
+    // In production, collect this from ViewModel Flow
+    // val searchResults by viewModel.getSearchResults(query).collectAsStateWithLifecycle(initialValue = emptyList())
     val searchResults = remember(query) {
         listOf("Groceries", "Salary", "Rent", "Coffee", "Internet").filter {
             it.contains(query, ignoreCase = true)
@@ -46,16 +45,14 @@ fun SearchScreen() {
                     onExpandedChange = { active = it },
                     placeholder = { Text("Search transactions...") },
                     leadingIcon = {
-                        if (active) {
-                            IconButton(onClick = { active = false }) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                            }
-                        } else {
-                            Icon(Icons.Default.Search, contentDescription = "Search")
+                        IconButton(onClick = { 
+                            if (active) active = false else onBack() 
+                        }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                         }
                     },
                     trailingIcon = {
-                        if (active && query.isNotEmpty()) {
+                        if (query.isNotEmpty()) {
                             IconButton(onClick = { query = "" }) {
                                 Icon(Icons.Default.Close, contentDescription = "Clear")
                             }

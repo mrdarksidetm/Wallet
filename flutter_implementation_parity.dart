@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-/// A custom Donut Chart widget for Flutter that matches the Paisa Compose implementation.
+/// A custom Donut Chart widget for Flutter that matches the Wallet Compose implementation.
 /// Uses [CustomPainter] for native performance and zero dependencies.
 class DonutChart extends StatefulWidget {
   final double income;

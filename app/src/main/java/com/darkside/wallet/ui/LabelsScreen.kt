@@ -18,7 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.darkside.wallet.data.LabelEntity
+import com.darkside.wallet.data.entity.LabelEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

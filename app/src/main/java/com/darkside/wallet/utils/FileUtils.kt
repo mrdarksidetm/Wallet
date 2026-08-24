@@ -34,4 +34,23 @@ object FileUtils {
         if (path == null) return false
         return File(path).exists()
     }
+
+    /**
+     * Saves a URI to a temporary file and returns the path.
+     */
+    fun saveUriToFile(context: Context, uri: Uri): String? {
+        return try {
+            val fileName = "temp_file_${System.currentTimeMillis()}"
+            val tempFile = File(context.cacheDir, fileName)
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(tempFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            tempFile.absolutePath
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
 }

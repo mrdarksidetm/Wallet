@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.darkside.wallet.data.entity.*
 import com.darkside.wallet.data.domain.CurrencyEngine
+import androidx.compose.material.icons.filled.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,11 +27,11 @@ fun AddTransactionScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
     var note by remember { mutableStateOf("") }
     var transactionType by remember { mutableStateOf(TransactionType.EXPENSE) }
     
-    val categories by viewModel.categories.collectAsState()
-    val accounts by viewModel.accounts.collectAsState()
-    val people by viewModel.persons.collectAsState()
-    val isSaving by viewModel.isSaving.collectAsState()
-    val error by viewModel.error.collectAsState()
+    val categories by viewModel.categories.collectAsStateWithLifecycle()
+    val accounts by viewModel.accounts.collectAsStateWithLifecycle()
+    val people by viewModel.persons.collectAsStateWithLifecycle()
+    val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
 
     var selectedCategoryId by remember { mutableStateOf<Long?>(null) }
     var selectedAccountId by remember { mutableStateOf<Long?>(null) }

@@ -18,35 +18,45 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.darkside.wallet.data.GoalEntity
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.darkside.wallet.data.entity.GoalEntity
+import com.darkside.wallet.data.domain.CurrencyEngine
+import com.darkside.wallet.ui.utils.ExpressiveCard
+import com.darkside.wallet.ui.utils.ExpressiveProgressBar
 import java.text.NumberFormat
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GoalsScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
-    val goals by viewModel.goals.collectAsState()
+    val goals by viewModel.goals.collectAsStateWithLifecycle(initialValue = emptyList())
+    val currencyCode by viewModel.currencyCode.collectAsStateWithLifecycle()
     var showAddGoalDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Goals") },
+                title = { Text("Financial Goals", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
+            ExtendedFloatingActionButton(
                 onClick = { showAddGoalDialog = true },
-                shape = RoundedCornerShape(20.dp),
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Goal", tint = Color.White)
-            }
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text("New Goal") },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                shape = RoundedCornerShape(20.dp)
+            )
         }
     ) { innerPadding ->
         if (goals.isEmpty()) {
@@ -56,7 +66,7 @@ fun GoalsScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        Icons.Default.Flag,
+                        Icons.Default.TrackChanges,
                         contentDescription = null,
                         modifier = Modifier.size(100.dp),
                         tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
@@ -74,7 +84,8 @@ fun GoalsScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
             ) {
                 items(goals) { goal ->
                     GoalListItem(
-                        goal = goal,
+                        goal = goal, 
+                        currencyCode = currencyCode,
                         onUpdateSaved = { amt -> viewModel.updateGoalSavedAmount(goal, amt) },
                         onDelete = { viewModel.deleteGoal(goal) }
                     )
@@ -86,8 +97,8 @@ fun GoalsScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
     if (showAddGoalDialog) {
         AddGoalDialog(
             onDismiss = { showAddGoalDialog = false },
-            onConfirm = { name, target, deadline ->
-                viewModel.addGoal(name, target, deadline)
+            onConfirm = { name, amount ->
+                viewModel.addGoal(name, amount, System.currentTimeMillis() + 31536000000L) // 1 year default
                 showAddGoalDialog = false
             }
         )
@@ -95,14 +106,18 @@ fun GoalsScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
 }
 
 @Composable
-fun GoalListItem(goal: GoalEntity, onUpdateSaved: (Double) -> Unit, onDelete: () -> Unit) {
-    val formatter = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
-    val progress = if (goal.targetAmount > 0) (goal.savedAmount / goal.targetAmount).toFloat() else 0f
-
-    Card(
+fun GoalListItem(
+    goal: GoalEntity, 
+    currencyCode: String,
+    onUpdateSaved: (Double) -> Unit,
+    onDelete: () -> Unit
+) {
+    val progress = (goal.currentAmount / goal.targetAmount).toFloat().coerceIn(0f, 1f)
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    
+    ExpressiveCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+        onClick = { showUpdateDialog = true }
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(
@@ -111,88 +126,109 @@ fun GoalListItem(goal: GoalEntity, onUpdateSaved: (Double) -> Unit, onDelete: ()
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text(text = goal.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text(text = "Target: ${formatter.format(goal.targetAmount)}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text = goal.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Target: ${CurrencyEngine.formatCurrency(goal.targetAmount, currencyCode)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             
-            LinearProgressIndicator(
-                progress = { progress.coerceIn(0f, 1f) },
-                modifier = Modifier.fillMaxWidth().height(12.dp).clip(CircleShape),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+            ExpressiveProgressBar(
+                progress = progress,
+                label = "Saved: ${CurrencyEngine.formatCurrency(goal.currentAmount, currencyCode)}",
+                color = if (progress >= 1f) Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary
             )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("${(progress * 100).toInt()}%", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                Text("${formatter.format(goal.savedAmount)} saved", style = MaterialTheme.typography.labelSmall)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            var showUpdateDialog by remember { mutableStateOf(false) }
-            Button(
-                onClick = { showUpdateDialog = true },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Update Progress")
-            }
-
-            if (showUpdateDialog) {
-                var amountText by remember { mutableStateOf(goal.savedAmount.toString()) }
-                AlertDialog(
-                    onDismissRequest = { showUpdateDialog = false },
-                    title = { Text("Update Saved Amount") },
-                    text = {
-                        OutlinedTextField(
-                            value = amountText,
-                            onValueChange = { amountText = it },
-                            label = { Text("Amount Saved") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    },
-                    confirmButton = {
-                        Button(onClick = {
-                            val amt = amountText.toDoubleOrNull() ?: 0.0
-                            onUpdateSaved(amt)
-                            showUpdateDialog = false
-                        }) { Text("Save") }
-                    }
-                )
-            }
         }
+    }
+
+    if (showUpdateDialog) {
+        var amountText by remember { mutableStateOf(goal.currentAmount.toString()) }
+        AlertDialog(
+            onDismissRequest = { showUpdateDialog = false },
+            title = { Text("Update Progress") },
+            text = {
+                OutlinedTextField(
+                    value = amountText,
+                    onValueChange = { if (it.all { c -> c.isDigit() || c == '.' }) amountText = it },
+                    label = { Text("Amount Saved") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val amt = amountText.toDoubleOrNull() ?: 0.0
+                        onUpdateSaved(amt)
+                        showUpdateDialog = false
+                    },
+                    shape = RoundedCornerShape(12.dp)
+                ) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUpdateDialog = false }) { Text("Cancel") }
+            },
+            shape = RoundedCornerShape(28.dp)
+        )
     }
 }
 
 @Composable
-fun AddGoalDialog(onDismiss: () -> Unit, onConfirm: (String, Double, Long) -> Unit) {
+fun AddGoalDialog(onDismiss: () -> Unit, onConfirm: (String, Double) -> Unit) {
     var name by remember { mutableStateOf("") }
-    var target by remember { mutableStateOf("") }
+    var amount by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New Goal") },
+        title = { Text("Add New Goal") },
         text = {
-            Column {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Goal Name") }, modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = target, onValueChange = { target = it }, label = { Text("Target Amount") }, modifier = Modifier.fillMaxWidth())
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Goal Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                OutlinedTextField(
+                    value = amount,
+                    onValueChange = { if (it.all { c -> c.isDigit() || c == '.' }) amount = it },
+                    label = { Text("Target Amount") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    prefix = { Text("₹") }
+                )
             }
         },
         confirmButton = {
-            Button(onClick = {
-                val t = target.toDoubleOrNull() ?: 0.0
-                if (name.isNotBlank() && t > 0) onConfirm(name, t, System.currentTimeMillis() + 31536000000L) // 1 year default
-            }) { Text("Create") }
+            Button(
+                onClick = {
+                    val amt = amount.toDoubleOrNull() ?: 0.0
+                    if (name.isNotBlank() && amt > 0) {
+                        onConfirm(name, amt)
+                    }
+                },
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Add Goal")
+            }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+        shape = RoundedCornerShape(28.dp)
     )
 }

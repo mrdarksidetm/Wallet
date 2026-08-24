@@ -12,20 +12,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.darkside.wallet.data.AppDatabase
 import com.darkside.wallet.data.domain.*
-import com.darkside.wallet.ui.navigation.PaisaNavGraph
+import com.darkside.wallet.ui.navigation.WalletNavGraph
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MainAppScreen() {
     val context = LocalContext.current
     val db = remember { AppDatabase.getDatabase(context) }
     val sharedPreferences = remember { context.getSharedPreferences("wallet_prefs", Context.MODE_PRIVATE) }
-    
+
     // Repositories
     val accountRepository = remember { AccountRepository(db.accountDao()) }
     val transactionRepository = remember { TransactionRepository(db.transactionDao()) }
@@ -35,10 +36,11 @@ fun MainAppScreen() {
     val budgetRepository = remember { BudgetRepository(db.budgetDao()) }
     val goalRepository = remember { GoalRepository(db.goalDao()) }
     val recurringRepository = remember { RecurringRepository(db.recurringDao()) }
-    
+    val labelRepository = remember { LabelRepository(db.labelDao()) }
+
     // Services
-    val transactionService = remember { 
-        TransactionService(db, db.transactionDao(), db.accountDao()) 
+    val transactionService = remember {
+        TransactionService(db, db.transactionDao(), db.accountDao())
     }
 
     val viewModel: WalletViewModel = viewModel(
@@ -51,6 +53,7 @@ fun MainAppScreen() {
             budgetRepository,
             goalRepository,
             recurringRepository,
+            labelRepository,
             transactionService,
             sharedPreferences
         )
@@ -59,14 +62,16 @@ fun MainAppScreen() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination?.route
-    
+
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val isDynamicToolbarEnabled by viewModel.isDynamicToolbarEnabled.collectAsStateWithLifecycle()
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
-            val showBottomBar = currentDestination in listOf("home", "accounts", "reports", "search")
-            if (showBottomBar) {
+            val showBottomBar = currentDestination in listOf("home", "accounts", "reports", "people", "search") 
+            if (showBottomBar && !isDynamicToolbarEnabled) {
                 NavigationBar(
                     modifier = Modifier
                         .padding(horizontal = 16.dp, vertical = 24.dp)
@@ -74,14 +79,14 @@ fun MainAppScreen() {
                     containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                     tonalElevation = 0.dp
                 ) {
-                    val navItems = listOf("home", "accounts", "reports", "search")
-                    val navIcons = listOf(Icons.Default.Home, Icons.Default.AccountBalanceWallet, Icons.Default.PieChart, Icons.Default.Search)
-                    val navLabels = listOf("Home", "Accounts", "Reports", "Search")
+                    val navItems = listOf("home", "accounts", "reports", "people", "search")
+                    val navIcons = listOf(Icons.Default.Home, Icons.Default.AccountBalanceWallet, Icons.Default.PieChart, Icons.Default.Group, Icons.Default.Search)
+                    val navLabels = listOf("Home", "Accounts", "Reports", "People", "Search")
 
                     navItems.forEachIndexed { index, item ->
                         NavigationBarItem(
                             icon = { Icon(navIcons[index], contentDescription = navLabels[index]) },
-                            label = { Text(navLabels[index], style = MaterialTheme.typography.labelSmall) },
+                            label = { Text(navLabels[index], style = MaterialTheme.typography.labelSmall) },    
                             selected = currentDestination == item,
                             onClick = {
                                 navController.navigate(item) {
@@ -104,7 +109,9 @@ fun MainAppScreen() {
         },
         floatingActionButton = {
             val showFab = currentDestination in listOf("home", "accounts")
-            if (showFab) {
+            val isExpressiveActive = isDynamicToolbarEnabled && currentDestination in listOf("home", "accounts", "reports", "people", "search")
+
+            if (showFab && !isDynamicToolbarEnabled) {
                 FloatingActionButton(
                     onClick = {
                         viewModel.clearError()
@@ -121,11 +128,61 @@ fun MainAppScreen() {
                         contentDescription = "Add"
                     )
                 }
+            } else if (isExpressiveActive) {
+                // Material 3 Expressive Dynamic Toolbar
+                HorizontalFloatingToolbar(
+                    expanded = true,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
+                        toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ),
+                    floatingActionButton = {
+                        if (currentDestination in listOf("home", "accounts")) {
+                            FloatingActionButton(
+                                onClick = {
+                                    viewModel.clearError()
+                                    if (currentDestination == "home") navController.navigate("add_transaction") 
+                                    else navController.navigate("add_account")
+                                },
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = Color.White,
+                                elevation = FloatingActionButtonDefaults.elevation()
+                            ) {
+                                Icon(
+                                    if (currentDestination == "home") Icons.Default.Add else Icons.Default.AccountBalanceWallet,
+                                    contentDescription = "Add"
+                                )
+                            }
+                        }
+                    },
+                    content = {
+                        val navItems = listOf("home", "accounts", "reports", "people", "search")
+                        val navIcons = listOf(Icons.Default.Home, Icons.Default.AccountBalanceWallet, Icons.Default.PieChart, Icons.Default.Group, Icons.Default.Search)
+
+                        navItems.forEachIndexed { index, item ->
+                            IconButton(
+                                onClick = {
+                                    navController.navigate(item) {
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }    
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    navIcons[index],
+                                    contentDescription = null,
+                                    tint = if (currentDestination == item) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                )
             }
         }
     ) { innerPadding ->
         Surface(modifier = Modifier.padding(innerPadding)) {
-            PaisaNavGraph(
+            WalletNavGraph(
                 navController = navController,
                 viewModel = viewModel,
                 snackbarHostState = snackbarHostState

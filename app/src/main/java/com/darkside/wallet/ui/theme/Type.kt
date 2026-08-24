@@ -1,5 +1,7 @@
 package com.darkside.wallet.ui.theme
 
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -10,11 +12,15 @@ import com.darkside.wallet.R
 
 val GoogleSansFlex = FontFamily(
     Font(R.font.google_sans_flex, FontWeight.Normal),
+    Font(R.font.google_sans_flex, FontWeight.Medium),
+    Font(R.font.google_sans_flex, FontWeight.SemiBold),
     Font(R.font.google_sans_flex, FontWeight.Bold),
-    Font(R.font.google_sans_flex, FontWeight.W900)
+    Font(R.font.google_sans_flex, FontWeight.Black)
 )
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 val Typography = Typography(
+    // Baseline Styles
     displayLarge = TextStyle(
         fontFamily = GoogleSansFlex,
         fontWeight = FontWeight.Normal,
@@ -45,7 +51,7 @@ val Typography = Typography(
     ),
     headlineMedium = TextStyle(
         fontFamily = GoogleSansFlex,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.Normal,
         fontSize = 28.sp,
         lineHeight = 36.sp,
         letterSpacing = 0.sp
@@ -66,7 +72,7 @@ val Typography = Typography(
     ),
     titleMedium = TextStyle(
         fontFamily = GoogleSansFlex,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.Medium,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.15.sp
@@ -119,5 +125,91 @@ val Typography = Typography(
         fontSize = 11.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
+    ),
+
+    // Emphasized Styles (Material 3 Expressive)
+    displayLargeEmphasized = TextStyle(
+        fontFamily = GoogleSansFlex,
+        fontWeight = FontWeight.Black,
+        fontSize = 57.sp,
+        lineHeight = 64.sp,
+        letterSpacing = (-0.25).sp
+    ),
+    displayMediumEmphasized = TextStyle(
+        fontFamily = GoogleSansFlex,
+        fontWeight = FontWeight.Black,
+        fontSize = 45.sp,
+        lineHeight = 52.sp,
+        letterSpacing = 0.sp
+    ),
+    displaySmallEmphasized = TextStyle(
+        fontFamily = GoogleSansFlex,
+        fontWeight = FontWeight.Black,
+        fontSize = 36.sp,
+        lineHeight = 44.sp,
+        letterSpacing = 0.sp
+    ),
+    headlineLargeEmphasized = TextStyle(
+        fontFamily = GoogleSansFlex,
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = 32.sp,
+        lineHeight = 40.sp,
+        letterSpacing = 0.sp
+    ),
+    headlineMediumEmphasized = TextStyle(
+        fontFamily = GoogleSansFlex,
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = 28.sp,
+        lineHeight = 36.sp,
+        letterSpacing = 0.sp
+    ),
+    headlineSmallEmphasized = TextStyle(
+        fontFamily = GoogleSansFlex,
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
+        letterSpacing = 0.sp
+    ),
+    titleLargeEmphasized = TextStyle(
+        fontFamily = GoogleSansFlex,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
+    ),
+    titleMediumEmphasized = TextStyle(
+        fontFamily = GoogleSansFlex,
+        fontWeight = FontWeight.Bold,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.15.sp
+    ),
+    titleSmallEmphasized = TextStyle(
+        fontFamily = GoogleSansFlex,
+        fontWeight = FontWeight.Bold,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp
+    ),
+    bodyLargeEmphasized = TextStyle(
+        fontFamily = GoogleSansFlex,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
+    ),
+    bodyMediumEmphasized = TextStyle(
+        fontFamily = GoogleSansFlex,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.25.sp
+    ),
+    bodySmallEmphasized = TextStyle(
+        fontFamily = GoogleSansFlex,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.4.sp
     )
 )

@@ -3,6 +3,8 @@ package com.darkside.wallet.data.domain
 import androidx.room.withTransaction
 import com.darkside.wallet.data.*
 import com.darkside.wallet.data.entity.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.*
 
 /**
@@ -100,6 +102,16 @@ class TransactionService(
 
             // 2. Delete from DB
             transactionDao.deleteTransaction(transaction)
+        }
+    }
+
+    /**
+     * CRITICAL: Clears all tables in the database.
+     * Used for full data restoration.
+     */
+    suspend fun clearAllData() {
+        withContext(Dispatchers.IO) {
+            database.clearAllTables()
         }
     }
 }

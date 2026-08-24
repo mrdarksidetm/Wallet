@@ -14,8 +14,8 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.darkside.wallet.ui.theme.PaisaGreen
-import com.darkside.wallet.ui.theme.PaisaRed
+import com.darkside.wallet.ui.theme.Income
+import com.darkside.wallet.ui.theme.Expense
 
 @Composable
 fun TrendsChart(
@@ -111,8 +111,8 @@ fun TrendsChart(
                     )
                 }
 
-                drawTrendLine(expenseTrends, PaisaRed)
-                drawTrendLine(incomeTrends, PaisaGreen)
+                drawTrendLine(expenseTrends, Expense)
+                drawTrendLine(incomeTrends, Income)
             }
         }
     }

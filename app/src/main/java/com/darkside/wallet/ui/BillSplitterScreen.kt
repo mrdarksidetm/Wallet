@@ -3,6 +3,7 @@ package com.darkside.wallet.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,25 +18,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.darkside.wallet.data.entity.LoanType
-import kotlinx.coroutines.launch
-import java.text.NumberFormat
-import java.util.Locale
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.darkside.wallet.data.domain.CurrencyEngine
+import com.darkside.wallet.ui.utils.ExpressiveCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BillSplitterScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
-    var totalAmount by remember { mutableStateOf("") }
-    var taxPercent by remember { mutableStateOf("0") }
-    var tipPercent by remember { mutableStateOf("0") }
+    val persons by viewModel.persons.collectAsStateWithLifecycle(initialValue = emptyList())
+    val currencyCode by viewModel.currencyCode.collectAsStateWithLifecycle()
     
-    val persons by viewModel.persons.collectAsState()
+    var totalAmount by remember { mutableStateOf("") }
+    var taxPercent by remember { mutableStateOf("") }
+    var tipPercent by remember { mutableStateOf("") }
     val selectedPersonIds = remember { mutableStateListOf<Long>() }
     
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    val formatter = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
-
     val amount = totalAmount.toDoubleOrNull() ?: 0.0
     val tax = taxPercent.toDoubleOrNull() ?: 0.0
     val tip = tipPercent.toDoubleOrNull() ?: 0.0
@@ -48,7 +45,6 @@ fun BillSplitterScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
     val perPerson = if (totalPeopleCount > 0) grandTotal / totalPeopleCount else 0.0
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Bill Splitter", fontWeight = FontWeight.Bold) },
@@ -56,153 +52,143 @@ fun BillSplitterScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         }
     ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .padding(horizontal = 20.dp),
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
+            // Summary Card
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                ExpressiveCard(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ) {
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+                    Column(modifier = Modifier.padding(24.dp)) {
                         Text(
-                            "Total Per Person",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                            text = "Each person pays",
+                            style = MaterialTheme.typography.labelLarge
                         )
                         Text(
-                            formatter.format(perPerson),
+                            text = CurrencyEngine.formatCurrency(perPerson, currencyCode),
                             style = MaterialTheme.typography.displayMedium,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            fontWeight = FontWeight.Bold
                         )
-                        Divider(modifier = Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f))
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Grand Total", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-                            Text(formatter.format(grandTotal), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Black)
-                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Grand Total: ${CurrencyEngine.formatCurrency(grandTotal, currencyCode)}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
                 }
             }
 
+            // Input Fields
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     OutlinedTextField(
                         value = totalAmount,
-                        onValueChange = { if (it.all { char -> char.isDigit() || char == '.' }) totalAmount = it },
+                        onValueChange = { if (it.all { c -> c.isDigit() || c == '.' }) totalAmount = it },
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Bill Amount") },
                         prefix = { Text("₹") },
-                        shape = RoundedCornerShape(16.dp),
-                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
-                        )
+                        shape = RoundedCornerShape(16.dp)
                     )
                     
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         OutlinedTextField(
                             value = taxPercent,
-                            onValueChange = { if (it.all { char -> char.isDigit() || char == '.' }) taxPercent = it },
+                            onValueChange = { if (it.all { c -> c.isDigit() || c == '.' }) taxPercent = it },
                             modifier = Modifier.weight(1f),
-                            label = { Text("Tax (%)") },
-                            shape = RoundedCornerShape(16.dp),
-                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                                keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
-                            )
+                            label = { Text("Tax %") },
+                            suffix = { Text("%") },
+                            shape = RoundedCornerShape(16.dp)
                         )
                         OutlinedTextField(
                             value = tipPercent,
-                            onValueChange = { if (it.all { char -> char.isDigit() || char == '.' }) tipPercent = it },
+                            onValueChange = { if (it.all { c -> c.isDigit() || c == '.' }) tipPercent = it },
                             modifier = Modifier.weight(1f),
-                            label = { Text("Tip (%)") },
-                            shape = RoundedCornerShape(16.dp),
-                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                                keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
-                            )
+                            label = { Text("Tip %") },
+                            suffix = { Text("%") },
+                            shape = RoundedCornerShape(16.dp)
                         )
                     }
                 }
             }
 
+            // Person Selector
             item {
-                Text(
-                    "Split With (${totalPeopleCount})",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                if (persons.isEmpty()) {
-                    Text("No people added yet. Add them in People section.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                } else {
-                    androidx.compose.foundation.lazy.LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(persons) { person ->
-                            FilterChip(
-                                selected = selectedPersonIds.contains(person.id),
-                                onClick = { 
-                                    if (selectedPersonIds.contains(person.id)) {
-                                        selectedPersonIds.remove(person.id)
-                                    } else {
-                                        selectedPersonIds.add(person.id)
+                Column {
+                    Text(
+                        text = "Split with ($totalPeopleCount people)",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    if (persons.isEmpty()) {
+                        Text(
+                            "No people added yet. Add them in People section.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    } else {
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(bottom = 16.dp)
+                        ) {
+                            // "You" avatar
+                            item {
+                                PersonChip(
+                                    name = "You",
+                                    isSelected = true,
+                                    onClick = {}
+                                )
+                            }
+                            
+                            items(persons) { person ->
+                                PersonChip(
+                                    name = person.name,
+                                    isSelected = selectedPersonIds.contains(person.id),
+                                    onClick = {
+                                        if (selectedPersonIds.contains(person.id)) {
+                                            selectedPersonIds.remove(person.id)
+                                        } else {
+                                            selectedPersonIds.add(person.id)
+                                        }
                                     }
-                                },
-                                label = { Text(person.name) },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.Person,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                },
-                                shape = CircleShape
-                            )
+                                )
+                            }
                         }
                     }
                 }
             }
-
-            item {
-                Button(
-                    onClick = {
-                        if (amount <= 0) return@Button
-                        
-                        viewModel.addLoans(
-                            personIds = selectedPersonIds.toList(),
-                            amount = perPerson,
-                            type = LoanType.LENT,
-                            note = "Split from ₹${totalAmount} bill"
-                        )
-                        
-                        scope.launch { 
-                            snackbarHostState.showSnackbar("Split saved as Loans for ${selectedPersonIds.size} people")
-                            onBack()
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    enabled = amount > 0 && selectedPersonIds.isNotEmpty()
-                ) {
-                    Icon(Icons.Default.CheckCircle, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Finalize & Record Loans")
-                }
-            }
-            
-            item { Spacer(modifier = Modifier.height(32.dp)) }
         }
     }
+}
+
+@Composable
+fun PersonChip(
+    name: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    FilterChip(
+        selected = isSelected,
+        onClick = onClick,
+        label = { Text(name) },
+        leadingIcon = if (isSelected) {
+            { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp)) }
+        } else {
+            { Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp)) }
+        },
+        shape = RoundedCornerShape(12.dp)
+    )
 }

@@ -12,20 +12,21 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.darkside.wallet.data.RecurringTransactionEntity
+import com.darkside.wallet.data.entity.*
 import java.text.NumberFormat
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecurringScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
-    val recurringItems by viewModel.recurringTransactions.collectAsState()
+    val recurringItems by viewModel.recurringTransactions.collectAsStateWithLifecycle()
     var showAddDialog by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -85,8 +86,18 @@ fun RecurringScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
     if (showAddDialog) {
         AddRecurringDialog(
             onDismiss = { showAddDialog = false },
-            onConfirm = { amount, note, cat, type, freq ->
-                viewModel.addRecurring(amount, note, cat, type, freq)
+            onConfirm = { amount, name, cat, type, freq ->
+                viewModel.addRecurring(
+                    amount = amount,
+                    name = name,
+                    categoryId = 1, // Default for simple UI
+                    type = if (type == "Income") TransactionType.INCOME else TransactionType.EXPENSE,
+                    frequency = when (freq) {
+                        "Daily" -> RecurrenceFrequency.DAILY
+                        "Weekly" -> RecurrenceFrequency.WEEKLY
+                        else -> RecurrenceFrequency.MONTHLY
+                    }
+                )
                 showAddDialog = false
             }
         )
@@ -94,7 +105,7 @@ fun RecurringScreen(viewModel: WalletViewModel, onBack: () -> Unit) {
 }
 
 @Composable
-fun RecurringListItem(item: RecurringTransactionEntity, onDelete: () -> Unit) {
+fun RecurringListItem(item: RecurringEntity, onDelete: () -> Unit) {
     val formatter = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -113,15 +124,15 @@ fun RecurringListItem(item: RecurringTransactionEntity, onDelete: () -> Unit) {
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = item.note.ifBlank { item.category }, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-                Text(text = "${item.frequency} • ${item.category}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text = item.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                Text(text = "${item.frequency} • Next: ${java.text.SimpleDateFormat("dd MMM", Locale.getDefault()).format(item.nextDate)}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = formatter.format(item.amount),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
-                    color = if (item.type == "Income") Color(0xFF10B981) else Color(0xFFEF4444)
+                    color = if (item.type == TransactionType.INCOME) Color(0xFF10B981) else Color(0xFFEF4444)
                 )
                 IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
                     Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))

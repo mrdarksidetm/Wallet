@@ -16,6 +16,7 @@ import com.darkside.wallet.ui.utils.AnimatedCounter
 
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.material.icons.filled.*
 
 @Composable
 fun TotalBalanceCard(

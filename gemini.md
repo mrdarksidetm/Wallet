@@ -1,4 +1,4 @@
-# System Instructions: Project Wallet (Paisa Clone)
+# System Instructions: Project Wallet (Wallet Clone)
 
 ## 1. Project Overview
 Build a premium, offline-first personal finance dashboard for Android 14. The app allows users to monitor their financial health, view transaction history, manage accounts (wallets), and track spending visually. The app must feel fluid, tactile, and native.

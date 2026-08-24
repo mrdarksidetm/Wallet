@@ -5,8 +5,8 @@
 # 2. Obfuscate code to reduce DEX size.
 # 3. Preserve Room database classes from obfuscation so SQL queries don't break.
 
--keep class com.mrdarksidetm.wallet.data.domain.** { *; }
--keep class com.mrdarksidetm.wallet.data.** { *; }
+-keep class com.darkside.wallet.data.domain.** { *; }
+-keep class com.darkside.wallet.data.** { *; }
 -keepclassmembers class * extends androidx.room.RoomDatabase { *; }
 
 -keep @androidx.room.Entity class *

@@ -1,6 +1,7 @@
 package com.darkside.wallet.utils
 
 import android.content.Context
+import android.content.Intent
 import java.io.File
 import java.io.FileWriter
 import java.io.PrintWriter
@@ -38,10 +39,20 @@ class LocalCrashReporter(private val context: Context) : Thread.UncaughtExceptio
             e.printStackTrace(writer)
             writer.println("---------------------------")
             writer.close()
+
+            // Launch CrashActivity to show the error UI
+            val intent = Intent(context, com.darkside.wallet.CrashActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                putExtra("EXTRA_ERROR_TRACE", e.stackTraceToString())
+            }
+            context.startActivity(intent)
+
         } catch (ex: Exception) {
             // Failsafe, do nothing if we can't write the log
         } finally {
-            defaultHandler?.uncaughtException(t, e)
+            // Kill the process to ensure a clean state
+            android.os.Process.killProcess(android.os.Process.myPid())
+            System.exit(10)
         }
     }
 }

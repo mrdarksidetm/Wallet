@@ -58,11 +58,13 @@ fun ActivityHeatmap(
             val maxCount = heatmapData.values.maxOrNull()?.coerceAtLeast(1) ?: 1
             
             val emptyColor = MaterialTheme.colorScheme.surfaceVariant
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val density = context.resources.displayMetrics.density
             
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height((actualHeight / context.resources.displayMetrics.density).dp)
+                    .height((actualHeight / density).dp)
             ) {
                 var dayIndex = 0
                 for (col in 0 until columns) {

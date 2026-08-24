@@ -24,7 +24,7 @@ Port the fully featured Flutter implementation (`Wallet-Flutter`) to the native 
 1. **Home Tab:** `HomePage`, `BudgetsPage`, `BillSplitterPage`, `GoalsPage`, `LoansPage`, `ActivityHeatmapPage`.
 2. **Accounts Tab:** `AccountsPage`, `AccountDetailsPage`, Add/Edit forms.
 3. **Transactions:** `AddTransactionPage`, `AllTransactionsPage`.
-4. **Reports Tab:** `ReportsPage`, `PaisaDonutChart`, Spending breakdowns.
+4. **Reports Tab:** `ReportsPage`, `WalletDonutChart`, Spending breakdowns.
 5. **People Tab:** `PeoplePage`, `PersonDetailsPage`.
 6. **Settings Tab:** Port all personalization, categories, currency, and profile pages.
 

@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.darkside.wallet.utils.FileUtils
 import java.io.File
+import androidx.compose.material.icons.filled.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -198,7 +199,11 @@ fun ManageProfileDialog(
                             )
                         }
                         else -> {
-                            Icon(Icons.Default.Person, contentDescription = null, size = 40.dp)
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = null,
+                                modifier = Modifier.size(40.dp)
+                            )
                         }
                     }
                     Box(

@@ -11,7 +11,7 @@ This project is being developed on a local Windows machine with strictly **4GB o
 * **Universal Fallback:** `Noto Sans` must be mapped as the explicit fallback in the `FontFamily` to prevent rendering crashes if the primary font fails to load.
 * **Scale:** Strictly use Jetpack Compose Material 3 `Typography` scales (`displayLarge`, `headlineMedium`, `bodyLarge`, etc.).
 
-## 3. UI/UX Design Language (Paisa Clone)
+## 3. UI/UX Design Language (Wallet Clone)
 The app utilizes the **Google Material 3 Expressive Design Language**. It must feel premium, tactile, and responsive.
 * **Corners:** Use large, friendly corner radii (16.dp to 24.dp) on standard Cards and bottom sheets.
 * **Loading States:** No custom splash screens. For any database or async operation taking 200ms - 5s, strictly use the M3 `CircularProgressIndicator`.
