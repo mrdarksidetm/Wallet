@@ -77,3 +77,13 @@ This file is the absolute source of truth for the project's evolution. All chang
   - Configured automated artifact upload via `actions/upload-artifact@v4` and automatic GitHub Release generation via `softprops/action-gh-release@v2` on tag push (`v*`).
   - Updated `app/build.gradle.kts` with `versionCode = 405`, `versionName = "4.0.5"`, and environment-driven `signingConfigs`.
 - **Status:** GitHub APK Production Pipeline Ready.
+
+---
+
+**2026-08-24 18:47:00**
+- **Action:** Optimized and fixed GitHub Actions runner configuration and Gradle properties.
+- **Changes:**
+  - Cleaned up experimental AGP flags in `gradle.properties` (`android.builtInKotlin`, `android.newDsl`, `configuration-cache`) that caused KSP compiler conflicts.
+  - Updated `app/build.gradle.kts` release signing config to gracefully `initWith(getByName("debug"))` when no external release keystore is provided.
+  - Streamlined `.github/workflows/build_apks.yml` with direct multi-target Gradle invocation (`assembleDebug assembleRelease`) and high-memory CI arguments (`-Xmx4096m`).
+- **Status:** CI/CD Workflow Optimized & Verified.
