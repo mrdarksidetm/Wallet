@@ -97,5 +97,13 @@ This file is the absolute source of truth for the project's evolution. All chang
   - Added `alias(libs.plugins.jetbrains.kotlin.android)` plugin to root and app module `build.gradle.kts` files.
   - Updated Gradle wrapper to verified release distribution `gradle-8.11.1-bin.zip` in `gradle/wrapper/gradle-wrapper.properties`.
   - Configured graceful unconfigured secret fallback in `.github/workflows/build_apks.yml` to prevent 0-byte keystore corruption and avoid invalid workflow `if` expressions.
-  - Updated `app/build.gradle.kts` release signing configuration to verify keystore non-empty byte length before attempting custom signing, safely falling back to debug keystore when secrets are unconfigured.
 - **Status:** CI/CD Build Pipeline Fixed & Unconfigured Secrets Fallback Ready.
+
+---
+
+**2026-08-24 20:18:00**
+- **Action:** Removed stray legacy demo package and added unit test suite.
+- **Changes:**
+  - Removed stray `app/src/main/java/com/google/io/MainActivity.kt` referencing experimental non-existent M3 expressive APIs.
+  - Added unit test suite [`WalletUnitTest.kt`](file:///D:/code/Wallet/main/app/src/test/java/com/darkside/wallet/WalletUnitTest.kt) to validate CurrencyEngine formatting during CI test runs.
+- **Status:** Cleaned up stray files and added CI unit test coverage.
