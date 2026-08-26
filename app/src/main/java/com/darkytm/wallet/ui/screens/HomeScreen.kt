@@ -306,7 +306,7 @@ private fun TransactionItemRow(item: TransactionWithDetails, onDelete: () -> Uni
     val isDebt = tx.type == TransactionType.DEBT_LEND || tx.type == TransactionType.DEBT_BORROW || tx.type == TransactionType.DEBT_REPAY
     val isGoal = tx.type == TransactionType.GOAL_CONTRIBUTION || tx.type == TransactionType.GOAL_WITHDRAWAL
 
-    val isDark = MaterialTheme.colorScheme.background.red < 0.5f
+    val isDark = androidx.compose.ui.graphics.luminance(MaterialTheme.colorScheme.background) < 0.5f
     val amountColor = when (tx.type) {
         TransactionType.INCOME -> if (isDark) IncomeGreenDark else IncomeGreenLight
         TransactionType.EXPENSE -> if (isDark) ExpenseRedDark else ExpenseRedLight

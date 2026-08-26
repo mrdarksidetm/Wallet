@@ -8,7 +8,7 @@ data class Category(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
     val iconEmoji: String = "📁",
-    val colorHex: Long = 0xFF8D4F00,
+    val colorHex: Long = 0xFF8D4F00L,
     val type: TransactionType = TransactionType.EXPENSE,
     val isDefault: Boolean = false
 )

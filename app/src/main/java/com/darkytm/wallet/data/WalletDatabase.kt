@@ -92,7 +92,6 @@ abstract class WalletDatabase : RoomDatabase() {
                 .addCallback(object : Callback() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)
-                        // Pre-populate with essential defaults
                         CoroutineScope(Dispatchers.IO).launch {
                             val instance = getInstance(context)
                             seedDefaults(instance)
@@ -108,25 +107,25 @@ abstract class WalletDatabase : RoomDatabase() {
             val categoryDao = database.categoryDao()
 
             val defaultAccounts = listOf(
-                Account(name = "Cash", iconEmoji = "💵", colorHex = 0xFF8D4F00, initialBalance = 0.0, type = AccountType.CASH),
-                Account(name = "Main Bank", iconEmoji = "🏦", colorHex = 0xFF1565C0, initialBalance = 0.0, type = AccountType.BANK),
-                Account(name = "Savings Vault", iconEmoji = "💰", colorHex = 0xFF2E7D32, initialBalance = 0.0, type = AccountType.SAVINGS)
+                Account(name = "Cash", iconEmoji = "💵", colorHex = 0xFF8D4F00L, initialBalance = 0.0, type = AccountType.CASH),
+                Account(name = "Main Bank", iconEmoji = "🏦", colorHex = 0xFF1565C0L, initialBalance = 0.0, type = AccountType.BANK),
+                Account(name = "Savings Vault", iconEmoji = "💰", colorHex = 0xFF2E7D32L, initialBalance = 0.0, type = AccountType.SAVINGS)
             )
             accountDao.insertAll(defaultAccounts)
 
             val defaultCategories = listOf(
-                Category(name = "Food & Dining", iconEmoji = "🍔", colorHex = 0xFFE65100, type = TransactionType.EXPENSE, isDefault = true),
-                Category(name = "Transport & Fuel", iconEmoji = "🚗", colorHex = 0xFF0277BD, type = TransactionType.EXPENSE, isDefault = true),
-                Category(name = "Bills & Utilities", iconEmoji = "💡", colorHex = 0xFFF57F17, type = TransactionType.EXPENSE, isDefault = true),
-                Category(name = "Shopping", iconEmoji = "🛍️", colorHex = 0xFF8E24AA, type = TransactionType.EXPENSE, isDefault = true),
-                Category(name = "Entertainment", iconEmoji = "🎬", colorHex = 0xFFD81B60, type = TransactionType.EXPENSE, isDefault = true),
-                Category(name = "Health & Care", iconEmoji = "🏥", colorHex = 0xFF00897B, type = TransactionType.EXPENSE, isDefault = true),
-                Category(name = "Travel", iconEmoji = "✈️", colorHex = 0xFF3949AB, type = TransactionType.EXPENSE, isDefault = true),
-                Category(name = "Other Expense", iconEmoji = "📦", colorHex = 0xFF757575, type = TransactionType.EXPENSE, isDefault = true),
-                Category(name = "Salary", iconEmoji = "💼", colorHex = 0xFF2E7D32, type = TransactionType.INCOME, isDefault = true),
-                Category(name = "Freelance / Gig", iconEmoji = "💻", colorHex = 0xFF00ACC1, type = TransactionType.INCOME, isDefault = true),
-                Category(name = "Investments", iconEmoji = "📈", colorHex = 0xFF43A047, type = TransactionType.INCOME, isDefault = true),
-                Category(name = "Gift / Other Income", iconEmoji = "🎁", colorHex = 0xFFFFB300, type = TransactionType.INCOME, isDefault = true)
+                Category(name = "Food & Dining", iconEmoji = "🍔", colorHex = 0xFFE65100L, type = TransactionType.EXPENSE, isDefault = true),
+                Category(name = "Transport & Fuel", iconEmoji = "🚗", colorHex = 0xFF0277BDL, type = TransactionType.EXPENSE, isDefault = true),
+                Category(name = "Bills & Utilities", iconEmoji = "💡", colorHex = 0xFFF57F17L, type = TransactionType.EXPENSE, isDefault = true),
+                Category(name = "Shopping", iconEmoji = "🛍️", colorHex = 0xFF8E24AAL, type = TransactionType.EXPENSE, isDefault = true),
+                Category(name = "Entertainment", iconEmoji = "🎬", colorHex = 0xFFD81B60L, type = TransactionType.EXPENSE, isDefault = true),
+                Category(name = "Health & Care", iconEmoji = "🏥", colorHex = 0xFF00897BL, type = TransactionType.EXPENSE, isDefault = true),
+                Category(name = "Travel", iconEmoji = "✈️", colorHex = 0xFF3949ABL, type = TransactionType.EXPENSE, isDefault = true),
+                Category(name = "Other Expense", iconEmoji = "📦", colorHex = 0xFF757575L, type = TransactionType.EXPENSE, isDefault = true),
+                Category(name = "Salary", iconEmoji = "💼", colorHex = 0xFF2E7D32L, type = TransactionType.INCOME, isDefault = true),
+                Category(name = "Freelance / Gig", iconEmoji = "💻", colorHex = 0xFF00ACC1L, type = TransactionType.INCOME, isDefault = true),
+                Category(name = "Investments", iconEmoji = "📈", colorHex = 0xFF43A047L, type = TransactionType.INCOME, isDefault = true),
+                Category(name = "Gift / Other Income", iconEmoji = "🎁", colorHex = 0xFFFFB300L, type = TransactionType.INCOME, isDefault = true)
             )
             categoryDao.insertAll(defaultCategories)
         }

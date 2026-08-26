@@ -10,7 +10,7 @@ data class Goal(
     val targetAmount: Double,
     val targetDateMillis: Long? = null,
     val iconEmoji: String = "🎯",
-    val colorHex: Long = 0xFF8D4F00,
+    val colorHex: Long = 0xFF8D4F00L,
     val isCompleted: Boolean = false,
     val createdAtMillis: Long = System.currentTimeMillis()
 )

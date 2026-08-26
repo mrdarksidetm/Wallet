@@ -8,7 +8,7 @@ data class Account(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
     val iconEmoji: String = "💳",
-    val colorHex: Long = 0xFF8D4F00,
+    val colorHex: Long = 0xFF8D4F00L,
     val initialBalance: Double = 0.0,
     val type: AccountType = AccountType.BANK,
     val isArchived: Boolean = false
