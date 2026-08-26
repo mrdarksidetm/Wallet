@@ -262,7 +262,7 @@ private fun SubsystemsCarousel(
                     }
                     Spacer(Modifier.height(6.dp))
                     LinearProgressIndicator(
-                        progress = { g.progressPercent },
+                        progress = g.progressPercent,
                         modifier = Modifier.fillMaxWidth().height(6.dp),
                     )
                     Spacer(Modifier.height(4.dp))
