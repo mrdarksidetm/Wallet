@@ -30,7 +30,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -79,7 +78,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: WalletViewModel,
@@ -301,12 +300,9 @@ private fun SubsystemsCarousel(
 @Composable
 private fun TransactionItemRow(item: TransactionWithDetails, onDelete: () -> Unit) {
     val tx = item.transaction
-    val isIncome = tx.type == TransactionType.INCOME
-    val isTransfer = tx.type == TransactionType.TRANSFER
-    val isDebt = tx.type == TransactionType.DEBT_LEND || tx.type == TransactionType.DEBT_BORROW || tx.type == TransactionType.DEBT_REPAY
-    val isGoal = tx.type == TransactionType.GOAL_CONTRIBUTION || tx.type == TransactionType.GOAL_WITHDRAWAL
+    val bg = MaterialTheme.colorScheme.background
+    val isDark = (0.299f * bg.red + 0.587f * bg.green + 0.114f * bg.blue) < 0.5f
 
-    val isDark = androidx.compose.ui.graphics.luminance(MaterialTheme.colorScheme.background) < 0.5f
     val amountColor = when (tx.type) {
         TransactionType.INCOME -> if (isDark) IncomeGreenDark else IncomeGreenLight
         TransactionType.EXPENSE -> if (isDark) ExpenseRedDark else ExpenseRedLight
