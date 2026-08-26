@@ -9,6 +9,7 @@ on:
 
 jobs:
   build:
+    name: Build Debug APK
     runs-on: ubuntu-latest
 
     steps:
@@ -28,9 +29,32 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        id: gradle_build
+        run: |
+          set -o pipefail
+          ./gradlew assembleDebug --stacktrace 2>&1 | tee build_output.log
+
+      - name: Publish Errors to Job Summary
+        if: failure()
+        run: |
+          echo "## ❌ Build Failure Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Here are the compiler and build error messages:" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          if grep -qE "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error)" build_output.log; then
+            grep -B 1 -A 3 -E "(^e: |^FAILURE:|^\* What went wrong:|^> Task :app:compile|^> Compilation error)" build_output.log | head -n 40 >> $GITHUB_STEP_SUMMARY
+          else
+            tail -n 35 build_output.log >> $GITHUB_STEP_SUMMARY
+          fi
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Publish Success to Job Summary
+        if: success()
+        run: |
+          echo "## ✅ Build Succeeded!" >> $GITHUB_STEP_SUMMARY
+          echo "Debug APK has been compiled successfully and attached below." >> $GITHUB_STEP_SUMMARY
 
       - name: Upload Debug APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
