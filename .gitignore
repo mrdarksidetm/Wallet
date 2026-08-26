@@ -1,20 +1,56 @@
 *.iml
 .gradle
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+/.idea
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
-local.properties
 *.apk
 *.aab
+*.jks
+*.keystore
+
+# Built application files
+*.apk
 *.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
 *.dex
-schemas/
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+app/build/
+build/
+
+# Android Studio Navigation editor temp files
+.navigation/
+
+# Android Studio captures folder
+captures/
+
+# IntelliJ
+*.iml
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/libraries
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services (Firebase)
+google-services.json
+
+# Log files
+*.log

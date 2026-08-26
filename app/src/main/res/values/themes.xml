@@ -1,8 +1,6 @@
 <resources>
-    <style name="Theme.Wallet" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
-    </style>
+    <!-- Base system theme. Compose's MaterialExpressiveTheme (in Theme.kt)
+         does the real Material 3 Expressive theming; this just tells
+         Android "no action bar, let Compose draw everything". -->
+    <style name="Theme.Wallet" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

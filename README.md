@@ -1,84 +1,91 @@
-# 🏦 Wallet (Android Native)
+# Wallet
 
-> **A premium, offline-first Android money tracking application built with Jetpack Compose.**
-> *Experience the future of finance with a tactile "Liquid Glass" design and local data sovereignty.* ✨
-
----
-
-## 🚀 Features
-
-### 🎨 **Material 3 Expressive Design**
-- **Sleek Aesthetics**: A "Liquid Glass" UI featuring vibrant gradients, glassmorphism, and premium typography.
-- **Dynamic Theming**: Fully utilizes Material 3 dynamic color, with refined hardcoded fallbacks.
-- **Micro-Animations**: Smooth, realistic interactions powered by Jetpack Compose spring physics.
-- **Tactile Feedback**: Large corner radii (16dp–24dp) for a friendly, modern feel.
-
-### 🧠 **Secure & Offline-First**
-- **Zero Network Calls**: Your financial data never leaves your device. No cloud sync, no API keys, total privacy.
-- **Local Intelligence**: Rule-based insights analyze your spending habits without external processing.
-- **Blazing Fast**: Built on **Room Database** for high-performance local data management.
-
-### 📊 **Comprehensive Financial Core**
-- **Dashboard**: Total balance overview with "This Month" breakdown (Income/Expense).
-- **Interactive Reports**: Custom-built Donut Charts (Compose Canvas) and category-wise spending breakdowns.
-- **Account Management**: Support for Cash, Bank, and Digital Wallets with swipable transaction logs.
-- **Feature Pipeline**: Budgets, Bill Splitter, Loans, and Goal tracking (Coming soon).
+A fast, offline-first personal finance and expense logger built with **Native Android Jetpack Compose**, **Material 3 Expressive**, and **Room (SQLite)**.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## 🎨 Design & Theming
 
-- **Language**: 100% Kotlin
-- **UI Framework**: Jetpack Compose (Material 3)
-- **Architecture**: MVVM + Unidirectional Data Flow (UDF)
-- **Database**: Room Persistence Library
-- **Dependency Injection**: Manual Provider Pattern
-- **Navigation**: Compose Navigation
-- **Typography**: Google Sans Flex (Bundled locally)
+- **Typography:** Fully offline bundled **Google Sans Flex** variable font ([`res/font/google_sans_flex.ttf`](file:///D:/code/Wallet/main/app/src/main/res/font/google_sans_flex.ttf)).
+- **Complete Suite of 10 Material 3 Dynamic Palette Variants:**
+  1. **Expressive (Recommended):** Warm Amber & Spiced Cinnamon paired with Botanical Sage
+  2. **Tonal Spot:** Velvety Honey Caramel & Soft Almond
+  3. **Vibrant:** Sunlit Terracotta & Molten Gold
+  4. **Rainbow:** Amber Gold, Sunset Coral, Sage & Copper Teal
+  5. **Fruit Salad:** Warm Apricot Peach & Mint Teal
+  6. **Spritz:** Soft Pastel Linen, Spiced Latte & Whispering Sage
+  7. **Fidelity:** True-to-Seed Deep Amber Resin & Pure Warm Ochre
+  8. **Content:** Sun-drenched Ochre, Baked Clay & Muted Moss
+  9. **Monochrome:** Warm Sepia Slate & Obsidian Charcoal
+  10. **Neutral:** Warm Travertine Stone & Warm Pebble Gray
+- **Theme Modes:**
+  - ☀️ **Light Mode:** Warm linen and cream surfaces
+  - 🌙 **Dark Mode:** Deep warm espresso tones
+  - 🖤 **AMOLED Mode:** Pure `#000000` pitch black for maximum OLED battery savings
+  - 🪄 **Dynamic Color:** Android 12+ wallpaper color extraction
 
 ---
 
-## 🏗️ Getting Started
+## 🧠 Single Source of Truth Architecture
 
-### Prerequisites
-- Android Studio Ladybug (or newer)
-- Android SDK 34 (Target) / API 26 (Min)
-- JDK 17
+Every financial calculation across the app is derived from immutable or event-sourced **`Transaction`** records:
 
-### ⚡ Installation
-
-1.  **Clone the Repository**
-    ```bash
-    git clone https://github.com/mrdarksidetm/Wallet.git
-    cd Wallet
-    ```
-
-2.  **Open in Android Studio**
-    Import the project and wait for Gradle to sync.
-
-3.  **Run the App** 🚀
-    Select your device/emulator and click the "Run" button.
-
-> [!IMPORTANT]
-> This project is optimized for 4GB RAM development environments. Avoid heavy builds; use selective compilation where possible.
+```mermaid
+graph TD
+    TX["Central Transaction (Source of Truth)"]
+    TX --> AC["Accounts (Live Balance = Initial + Inflows - Outflows)"]
+    TX --> BG["Budgets (Monthly Spending vs Limits)"]
+    TX --> GL["Goals (Current Saved = Contributions - Withdrawals)"]
+    TX --> DB["Debt & People (Lent vs Borrowed vs Repaid)"]
+    TX --> CT["Categories (Spending Insights & Trends)"]
+    TX --> NW["Net Worth / Total Balance"]
+```
 
 ---
 
 ## 📂 Project Structure
 
-- **`app/src/main/java/com/mrdarksidetm/wallet/ui`**: All Compose screens and components.
-- **`app/src/main/java/com/mrdarksidetm/wallet/data`**: Room entities, DAOs, and Database configuration.
-- **`app/src/main/java/com/mrdarksidetm/wallet/viewmodel`**: Domain logic and UI state management.
-- **`app/src/main/res/font`**: Bundled premium fonts (`Google Sans Flex`).
+```
+Wallet/main/
+├── .github/workflows/android-ci.yml  # GitHub Actions CI/CD workflow
+├── .gitignore                        # Git ignore patterns
+├── build.gradle.kts                  # Root Gradle build script
+├── settings.gradle.kts               # Project settings
+├── gradle.properties                 # JVM & low-memory configuration
+├── gradlew / gradlew.bat             # Gradle wrapper scripts
+├── gradle/wrapper/                   # Gradle wrapper binaries & configuration
+└── app/
+    ├── build.gradle.kts              # Application build config & dependencies
+    ├── src/main/
+        ├── AndroidManifest.xml       # Application manifest
+        ├── java/com/darkytm/wallet/
+        │   ├── MainActivity.kt       # Single activity entry point
+        │   ├── WalletApplication.kt  # Application container & Repository singleton
+        │   ├── data/
+        │   │   ├── dao/              # Transaction, Account, Category, Goal, Debt, Budget DAOs
+        │   │   ├── model/            # Entities, Enums & Relation models
+        │   │   ├── repository/       # WalletRepository (Reactive Calculation Engine)
+        │   │   └── WalletDatabase.kt # Room Database with default seed data
+        │   ├── navigation/           # Compose NavGraph
+        │   ├── ui/
+        │   │   ├── screens/          # HomeScreen, AddEntryScreen
+        │   │   ├── theme/            # Theme, Color, Type (Google Sans Flex), PaletteStyle (10 M3 variants)
+        │   │   ├── WalletViewModel.kt
+        │   │   └── WalletViewModelFactory.kt
+        │   └── util/                 # Currency formatter & input sanitizer
+        └── res/
+            ├── font/                 # Offline Google Sans Flex Variable TTF
+            ├── drawable/             # Vector backgrounds and icons
+            ├── mipmap-anydpi-v26/    # Adaptive launcher icons
+            └── values/               # Colors, strings, themes
+```
 
 ---
 
-## 🤝 Contributing
+## 🚀 Building & Testing
 
-We love contributions! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) to learn how to get involved.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-MIT © [Abhi](https://github.com/mrdarksidetm)
+- **Remote Build (GitHub Actions):** Push commits to GitHub to automatically trigger the CI/CD pipeline and download the build artifact.
+- **Installing to Device via ADB:**
+  ```bash
+  adb install -r app/build/outputs/apk/debug/app-debug.apk
+  ```
