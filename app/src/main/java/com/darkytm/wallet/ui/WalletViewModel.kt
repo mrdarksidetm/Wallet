@@ -43,29 +43,51 @@ class WalletViewModel(private val repository: WalletRepository) : ViewModel() {
     private val paletteStyleFlow = MutableStateFlow(PaletteStyle.EXPRESSIVE)
     private val dynamicColorFlow = MutableStateFlow(false)
 
-    val uiState: StateFlow<WalletUiState> = combine(
+    // Combine financial entities (4 flows)
+    private val financialCoreFlow = combine(
         repository.observeTotalBalance(),
         repository.getRecentTransactionsWithDetails(30),
         repository.observeAccountsWithBalances(),
-        repository.observeGoalsWithProgress(),
+        repository.observeGoalsWithProgress()
+    ) { totalBalance, recentTxs, accounts, goals ->
+        CoreData(totalBalance, recentTxs, accounts, goals)
+    }
+
+    // Combine secondary subsystems (3 flows)
+    private val secondaryDataFlow = combine(
         repository.observePeopleWithDebts(),
         repository.observeBudgetsWithProgress(),
-        repository.getAllCategories(),
+        repository.getAllCategories()
+    ) { people, budgets, categories ->
+        SecondaryData(people, budgets, categories)
+    }
+
+    // Combine theme settings (3 flows)
+    private val themeSettingsFlow = combine(
         themeModeFlow,
         paletteStyleFlow,
         dynamicColorFlow
-    ) { totalBalance, txs, accounts, goals, people, budgets, categories, themeMode, paletteStyle, dynamicColor ->
+    ) { themeMode, paletteStyle, dynamicColor ->
+        ThemeData(themeMode, paletteStyle, dynamicColor)
+    }
+
+    // Final UI State combination (3 typed flows)
+    val uiState: StateFlow<WalletUiState> = combine(
+        financialCoreFlow,
+        secondaryDataFlow,
+        themeSettingsFlow
+    ) { core, secondary, theme ->
         WalletUiState(
-            totalBalance = totalBalance,
-            recentTransactions = txs,
-            accounts = accounts,
-            goals = goals,
-            people = people,
-            budgets = budgets,
-            categories = categories,
-            themeMode = themeMode,
-            paletteStyle = paletteStyle,
-            isDynamicColor = dynamicColor
+            totalBalance = core.totalBalance,
+            recentTransactions = core.recentTransactions,
+            accounts = core.accounts,
+            goals = core.goals,
+            people = secondary.people,
+            budgets = secondary.budgets,
+            categories = secondary.categories,
+            themeMode = theme.themeMode,
+            paletteStyle = theme.paletteStyle,
+            isDynamicColor = theme.dynamicColor
         )
     }.stateIn(
         scope = viewModelScope,
@@ -136,4 +158,23 @@ class WalletViewModel(private val repository: WalletRepository) : ViewModel() {
     fun addBudget(budget: Budget) {
         viewModelScope.launch { repository.addBudget(budget) }
     }
+
+    private data class CoreData(
+        val totalBalance: Double,
+        val recentTransactions: List<TransactionWithDetails>,
+        val accounts: List<AccountWithBalance>,
+        val goals: List<GoalWithProgress>
+    )
+
+    private data class SecondaryData(
+        val people: List<PersonWithDebt>,
+        val budgets: List<BudgetWithProgress>,
+        val categories: List<Category>
+    )
+
+    private data class ThemeData(
+        val themeMode: ThemeMode,
+        val paletteStyle: PaletteStyle,
+        val dynamicColor: Boolean
+    )
 }
