@@ -51,4 +51,12 @@ object CurrencyUtils {
         val afterDot = filtered.substring(firstDotIndex + 1).replace(".", "")
         return beforeDot + afterDot
     }
+
+    /**
+     * Parses a string representation of an amount into a Double.
+     */
+    fun parseAmount(input: String): Double? {
+        val sanitized = sanitizeAmountInput(input)
+        return sanitized.toDoubleOrNull()
+    }
 }
