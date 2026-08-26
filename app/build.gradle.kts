@@ -54,8 +54,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
-    // Material 3 Expressive APIs
-    implementation("androidx.compose.material3:material3:1.5.0-alpha24")
+    // Material 3 (managed by BOM)
+    implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
 
     // --- Core Android / lifecycle ---

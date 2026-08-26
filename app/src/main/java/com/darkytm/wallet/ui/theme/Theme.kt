@@ -3,9 +3,7 @@ package com.darkytm.wallet.ui.theme
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialExpressiveTheme
-import androidx.compose.material3.MotionScheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -250,7 +248,6 @@ fun getWarmColorScheme(
  * Root theme supporting all 10 Material 3 dynamic color scheme variants,
  * Light, Dark, AMOLED, and Google Sans Flex typography.
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WalletTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
@@ -283,10 +280,9 @@ fun WalletTheme(
         else -> getWarmColorScheme(isDark = isDark, isAmoled = isAmoled, style = paletteStyle)
     }
 
-    MaterialExpressiveTheme(
+    MaterialTheme(
         colorScheme = colorScheme,
         typography = WalletTypography,
-        motionScheme = MotionScheme.expressive(),
         content = content
     )
 }
