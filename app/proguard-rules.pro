@@ -1,24 +1,24 @@
-# Phase 14: Release Preparation & Memory Optimization
+# Add project specific ProGuard rules here.
+# By default, the flags in this file are appended to flags specified
+# in C:\Users\Abhi\AppData\Local\Android\Sdk/tools/proguard/proguard-android.txt
+# You can edit the include path and order by changing the proguardFiles
+# directive in build.gradle.
 
-# CRITICAL: 4GB RAM Optimization Rules
-# 1. Shrink resources to remove unused Material 3 vectors.
-# 2. Obfuscate code to reduce DEX size.
-# 3. Preserve Room database classes from obfuscation so SQL queries don't break.
+# Keep Room generated classes
+-keep class * extends androidx.room.RoomDatabase
+-dontwarn androidx.room.paging.**
 
--keep class com.darkside.wallet.data.domain.** { *; }
--keep class com.darkside.wallet.data.** { *; }
--keepclassmembers class * extends androidx.room.RoomDatabase { *; }
+# Keep Kotlinx Serialization
+-keepattributes *Annotation*,InnerClasses
+-dontnote kotlinx.serialization.SerializationKt
+-keepclassmembers class * {
+    *** Companion;
+}
+-keepclasseswithmembers class * {
+    kotlinx.serialization.KSerializer serializer(...);
+}
 
--keep @androidx.room.Entity class *
--keep @androidx.room.Dao class *
-
-# Preserve Vico charts and native canvas elements
--keep class com.patrykandpatrick.vico.** { *; }
-
-# General optimization
--optimizationpasses 5
--dontusemixedcaseclassnames
--dontskipnonpubliclibraryclasses
--dontpreverify
--verbose
--optimizations !code/simplification/arithmetic,!field/*,!class/merging/*
+# Keep Compose
+-keepclassmembers class * {
+    @androidx.compose.runtime.Composable *;
+}
