@@ -11,9 +11,11 @@ import com.darkytm.wallet.data.model.Goal
 import com.darkytm.wallet.data.model.GoalWithProgress
 import com.darkytm.wallet.data.model.Person
 import com.darkytm.wallet.data.model.PersonWithDebt
+import com.darkytm.wallet.data.model.RecurringRule
 import com.darkytm.wallet.data.model.Transaction
 import com.darkytm.wallet.data.model.TransactionType
 import com.darkytm.wallet.data.model.TransactionWithDetails
+import com.darkytm.wallet.data.repository.MonthlyStats
 import com.darkytm.wallet.data.repository.WalletRepository
 import com.darkytm.wallet.ui.theme.PaletteStyle
 import com.darkytm.wallet.ui.theme.ThemeMode
@@ -27,11 +29,16 @@ import kotlinx.coroutines.launch
 data class WalletUiState(
     val totalBalance: Double = 0.0,
     val recentTransactions: List<TransactionWithDetails> = emptyList(),
+    val allTransactions: List<TransactionWithDetails> = emptyList(),
     val accounts: List<AccountWithBalance> = emptyList(),
     val goals: List<GoalWithProgress> = emptyList(),
     val people: List<PersonWithDebt> = emptyList(),
     val budgets: List<BudgetWithProgress> = emptyList(),
     val categories: List<Category> = emptyList(),
+    val recurringRules: List<RecurringRule> = emptyList(),
+    val monthlyIncome: Double = 0.0,
+    val monthlyExpense: Double = 0.0,
+    val isBalanceVisible: Boolean = true,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val paletteStyle: PaletteStyle = PaletteStyle.EXPRESSIVE,
     val isDynamicColor: Boolean = false
@@ -42,33 +49,38 @@ class WalletViewModel(private val repository: WalletRepository) : ViewModel() {
     private val themeModeFlow = MutableStateFlow(ThemeMode.SYSTEM)
     private val paletteStyleFlow = MutableStateFlow(PaletteStyle.EXPRESSIVE)
     private val dynamicColorFlow = MutableStateFlow(false)
+    private val isBalanceVisibleFlow = MutableStateFlow(true)
 
-    // Combine financial entities (4 flows)
+    // Combine financial entities (5 flows)
     private val financialCoreFlow = combine(
         repository.observeTotalBalance(),
         repository.getRecentTransactionsWithDetails(30),
+        repository.getAllTransactionsWithDetails(),
         repository.observeAccountsWithBalances(),
         repository.observeGoalsWithProgress()
-    ) { totalBalance, recentTxs, accounts, goals ->
-        CoreData(totalBalance, recentTxs, accounts, goals)
+    ) { totalBalance, recentTxs, allTxs, accounts, goals ->
+        CoreData(totalBalance, recentTxs, allTxs, accounts, goals)
     }
 
-    // Combine secondary subsystems (3 flows)
+    // Combine secondary subsystems (5 flows)
     private val secondaryDataFlow = combine(
         repository.observePeopleWithDebts(),
         repository.observeBudgetsWithProgress(),
-        repository.getAllCategories()
-    ) { people, budgets, categories ->
-        SecondaryData(people, budgets, categories)
+        repository.getAllCategories(),
+        repository.getAllRecurringRules(),
+        repository.observeMonthlyStats()
+    ) { people, budgets, categories, recurringRules, monthlyStats ->
+        SecondaryData(people, budgets, categories, recurringRules, monthlyStats)
     }
 
-    // Combine theme settings (3 flows)
+    // Combine theme settings (4 flows)
     private val themeSettingsFlow = combine(
         themeModeFlow,
         paletteStyleFlow,
-        dynamicColorFlow
-    ) { themeMode, paletteStyle, dynamicColor ->
-        ThemeData(themeMode, paletteStyle, dynamicColor)
+        dynamicColorFlow,
+        isBalanceVisibleFlow
+    ) { themeMode, paletteStyle, dynamicColor, isBalanceVisible ->
+        ThemeData(themeMode, paletteStyle, dynamicColor, isBalanceVisible)
     }
 
     // Final UI State combination (3 typed flows)
@@ -80,11 +92,16 @@ class WalletViewModel(private val repository: WalletRepository) : ViewModel() {
         WalletUiState(
             totalBalance = core.totalBalance,
             recentTransactions = core.recentTransactions,
+            allTransactions = core.allTransactions,
             accounts = core.accounts,
             goals = core.goals,
             people = secondary.people,
             budgets = secondary.budgets,
             categories = secondary.categories,
+            recurringRules = secondary.recurringRules,
+            monthlyIncome = secondary.monthlyStats.income,
+            monthlyExpense = secondary.monthlyStats.expense,
+            isBalanceVisible = theme.isBalanceVisible,
             themeMode = theme.themeMode,
             paletteStyle = theme.paletteStyle,
             isDynamicColor = theme.dynamicColor
@@ -131,6 +148,10 @@ class WalletViewModel(private val repository: WalletRepository) : ViewModel() {
         }
     }
 
+    fun toggleBalanceVisibility() {
+        isBalanceVisibleFlow.value = !isBalanceVisibleFlow.value
+    }
+
     fun setThemeMode(mode: ThemeMode) {
         themeModeFlow.value = mode
     }
@@ -159,9 +180,14 @@ class WalletViewModel(private val repository: WalletRepository) : ViewModel() {
         viewModelScope.launch { repository.addBudget(budget) }
     }
 
+    fun addRecurringRule(rule: RecurringRule) {
+        viewModelScope.launch { repository.addRecurringRule(rule) }
+    }
+
     private data class CoreData(
         val totalBalance: Double,
         val recentTransactions: List<TransactionWithDetails>,
+        val allTransactions: List<TransactionWithDetails>,
         val accounts: List<AccountWithBalance>,
         val goals: List<GoalWithProgress>
     )
@@ -169,12 +195,15 @@ class WalletViewModel(private val repository: WalletRepository) : ViewModel() {
     private data class SecondaryData(
         val people: List<PersonWithDebt>,
         val budgets: List<BudgetWithProgress>,
-        val categories: List<Category>
+        val categories: List<Category>,
+        val recurringRules: List<RecurringRule>,
+        val monthlyStats: MonthlyStats
     )
 
     private data class ThemeData(
         val themeMode: ThemeMode,
         val paletteStyle: PaletteStyle,
-        val dynamicColor: Boolean
+        val dynamicColor: Boolean,
+        val isBalanceVisible: Boolean
     )
 }

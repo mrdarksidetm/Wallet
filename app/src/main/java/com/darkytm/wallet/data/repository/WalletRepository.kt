@@ -17,6 +17,7 @@ import com.darkytm.wallet.data.model.TransactionType
 import com.darkytm.wallet.data.model.TransactionWithDetails
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import java.util.Calendar
 
 class WalletRepository(private val database: WalletDatabase) {
@@ -204,6 +205,29 @@ class WalletRepository(private val database: WalletDatabase) {
     fun getAllGoals(): Flow<List<Goal>> = goalDao.getAllGoals()
     fun getAllRecurringRules(): Flow<List<RecurringRule>> = recurringDao.getAllActiveRules()
 
+    fun observeMonthlyStats(): Flow<MonthlyStats> {
+        return transactionDao.getAllTransactions().map { transactions ->
+            val calendar = Calendar.getInstance()
+            calendar.set(Calendar.DAY_OF_MONTH, 1)
+            calendar.set(Calendar.HOUR_OF_DAY, 0)
+            calendar.set(Calendar.MINUTE, 0)
+            calendar.set(Calendar.SECOND, 0)
+            calendar.set(Calendar.MILLISECOND, 0)
+            val startOfMonth = calendar.timeInMillis
+
+            var income = 0.0
+            var expense = 0.0
+            transactions.filter { it.dateMillis >= startOfMonth }.forEach { tx ->
+                when (tx.type) {
+                    TransactionType.INCOME -> income += tx.amount
+                    TransactionType.EXPENSE -> expense += tx.amount
+                    else -> {}
+                }
+            }
+            MonthlyStats(income = income, expense = expense)
+        }
+    }
+
     suspend fun addAccount(account: Account): Long = accountDao.insert(account)
     suspend fun addCategory(category: Category): Long = categoryDao.insert(category)
     suspend fun addPerson(person: Person): Long = personDao.insert(person)
@@ -211,3 +235,8 @@ class WalletRepository(private val database: WalletDatabase) {
     suspend fun addBudget(budget: Budget): Long = budgetDao.insert(budget)
     suspend fun addRecurringRule(rule: RecurringRule): Long = recurringDao.insert(rule)
 }
+
+data class MonthlyStats(
+    val income: Double = 0.0,
+    val expense: Double = 0.0
+)
