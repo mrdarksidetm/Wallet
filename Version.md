@@ -75,3 +75,16 @@
     - Added dedicated note input field.
     - Refined Material 3 Expressive input shapes, button styling, and layout spacing.
 - **Status:** 100% (Complete, verified, ready for GitHub remote verification).
+
+## [2026-09-19 21:32] - Official Vector Brand Logos & Profile Dialog Polish
+- **Action:** Removed "Jetpack Compose" and "Material 3 Expressive" text descriptions from Profile & Settings dialog and replaced with authentic official vector logos.
+- **Brand Vector Integration:**
+  - Integrated official Android vector logo `app/src/main/res/drawable/ic_android_logo.xml` and official 22-path Jetpack Compose vector logo `app/src/main/res/drawable/ic_jetpack_compose_logo.xml`.
+  - Replaced plain text with `Made with ❤️` and centered row `[Android Logo] ✕ [Jetpack Compose Logo]` with 70% opacity and `tint = Color.Unspecified`.
+- **Files Created:**
+  - `app/src/main/res/drawable/ic_android_logo.xml`
+  - `app/src/main/res/drawable/ic_jetpack_compose_logo.xml`
+- **Files Modified:**
+  - `app/src/main/java/com/darkytm/wallet/ui/screens/HomeScreen.kt`
+  - `Version.md`
+- **Status:** 100% (Complete, verified, ready for GitHub remote verification).

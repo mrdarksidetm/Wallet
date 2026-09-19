@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
@@ -34,9 +35,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.darkytm.wallet.R
 import com.darkytm.wallet.ui.WalletViewModel
 import com.darkytm.wallet.ui.components.ActivityInsightsSection
 import com.darkytm.wallet.ui.components.AnimatedBalanceHero
@@ -82,10 +87,44 @@ fun HomeScreen(
                 )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text("User: DarkyTM", fontWeight = FontWeight.SemiBold)
-                    Text("Architecture: Native Jetpack Compose + Room", style = MaterialTheme.typography.bodyMedium)
-                    Text("Design System: Material 3 Expressive", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                    Text("Offline-first personal finance and expense logger.", style = MaterialTheme.typography.bodyMedium)
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Made with ❤️",
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.alpha(0.7f)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_android_logo),
+                            contentDescription = "Android",
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            text = "  ✕  ",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_jetpack_compose_logo),
+                            contentDescription = "Jetpack Compose",
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             },
             confirmButton = {
